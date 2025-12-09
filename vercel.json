@@ -3,8 +3,8 @@
   "outputDirectory": "dist",
   "functions": {
     "api/lookup.js": {
-      "maxDuration": 60,
-      "memory": 2048
+      "maxDuration": 540,
+      "memory": 3008
     }
   }
 }

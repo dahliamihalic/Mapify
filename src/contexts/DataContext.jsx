@@ -77,8 +77,20 @@ export const DataProvider = ({ children }) => {
             return geolocatedData;
 
         } catch (err) {
-            console.error("GeoIP Lookup Error:", err);
-            const errorMessage = err.response?.data || "An unknown error occurred during server processing.";
+            console.error("GeoIP Lookup Error:", err.message);
+            console.error("Full error details:", err);
+            let errorMessage = "An unknown error occurred during server processing.";
+            
+            if (err.response?.data?.error) {
+                errorMessage = err.response.data.error;
+            } else if (err.response?.status === 403) {
+                errorMessage = "Access Forbidden (403) - CORS or authentication issue";
+            } else if (err.response?.status === 500) {
+                errorMessage = `Server Error: ${err.response.data?.error || err.message}`;
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+            
             setError(errorMessage);
             return [];
         } finally {

@@ -46,15 +46,11 @@ module.exports = async (req, res) => {
 
     const origin = req.headers.origin;
     
-    if (origin && allowedOrigins.includes(origin)) {
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    } else if (origin && origin.includes('vercel.app')) {
-        // Allow all Vercel preview deployments
-        res.setHeader('Access-Control-Allow-Origin', origin);
-    }
-    
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    // Set CORS headers for all origins to debug
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Max-Age', '3600');
 
     // Handle preflight request
     if (req.method === 'OPTIONS') {
@@ -147,7 +143,11 @@ module.exports = async (req, res) => {
         res.status(200).json(geoData);
 
     } catch (error) {
-        console.error('SERVER FATAL ERROR:', error);
-        res.status(500).json({ error: `Internal Server Error: ${error.message}` });
+        console.error('SERVER FATAL ERROR:', error.message);
+        console.error('Full error:', JSON.stringify(error, null, 2));
+        res.status(500).json({ 
+            error: `Internal Server Error: ${error.message}`,
+            details: error.stack 
+        });
     }
 };
