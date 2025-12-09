@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently \"npm run client\" \"npm run server\"",
-    "build": "vite build",
-    "vercel-build": "vite build",
+    "build": "vite build && npm run copy-geoip",
+    "copy-geoip": "mkdir -p dist/server/data && cp -r server/data/*.mmdb dist/server/data/ 2>/dev/null || true",
+    "vercel-build": "vite build && npm run copy-geoip",
     "lint": "eslint .",
     "preview": "vite preview",
     "client": "vite",

@@ -4,10 +4,8 @@
   "functions": {
     "api/lookup.js": {
       "maxDuration": 300,
-      "memory": 2048
+      "memory": 2048,
+      "includeFiles": "server/data/**"
     }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" }
-  ]
+  }
 }

@@ -12,18 +12,32 @@ const upload = multer({
 
 // Load GeoIP database
 let reader;
-const dbPath = path.resolve(__dirname, '../server/data', 'GeoLite2-City.mmdb');
+
+// Try multiple paths for the database (for local dev and Vercel deployment)
+const possiblePaths = [
+    path.resolve(__dirname, '../server/data', 'GeoLite2-City.mmdb'),    // Development
+    path.resolve(__dirname, '../dist/server/data', 'GeoLite2-City.mmdb'), // Vercel
+    path.resolve('/var/task/server/data', 'GeoLite2-City.mmdb'),          // Vercel Lambda
+    path.join(process.cwd(), 'server/data', 'GeoLite2-City.mmdb')         // Fallback
+];
+
+let dbPath = null;
+for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+        dbPath = p;
+        break;
+    }
+}
 
 try {
-    if (!fs.existsSync(dbPath)) {
-        throw new Error(`GeoIP database not found at: ${dbPath}`);
+    if (!dbPath) {
+        throw new Error(`GeoIP database not found. Checked paths: ${possiblePaths.join(', ')}`);
     }
     const dbBuffer = fs.readFileSync(dbPath);
     reader = Reader.openBuffer(dbBuffer);
     console.log("✅ GeoIP database loaded successfully from:", dbPath);
 } catch (error) {
     console.error("❌ Failed to load GeoIP database:", error.message);
-    console.error("Database path attempted:", dbPath);
     console.error("Current working directory:", process.cwd());
 }
 
@@ -41,23 +55,14 @@ const runMiddleware = (req, res, fn) => {
 
 // Main serverless function handler
 module.exports = async (req, res) => {
-    // Set CORS headers
-    const allowedOrigins = [
-        'http://localhost:5173',
-        'http://127.0.0.1:5173',
-        process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
-        process.env.VERCEL_PRODUCTION_URL ? `https://${process.env.VERCEL_PRODUCTION_URL}` : null
-    ].filter(Boolean);
+    // Set CORS headers - simple and permissive for Vercel
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Max-Age', '86400');
 
-    const origin = req.headers.origin;
-    
-    // Set CORS headers for all origins to debug
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Max-Age', '3600');
-
-    // Handle preflight request
+    // Handle preflight (OPTIONS) requests
     if (req.method === 'OPTIONS') {
         res.status(200).end();
         return;
@@ -65,7 +70,7 @@ module.exports = async (req, res) => {
 
     // Only allow POST requests
     if (req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
+        return res.status(405).json({ error: 'Method not allowed. Use POST.' });
     }
 
     try {
@@ -156,11 +161,21 @@ module.exports = async (req, res) => {
         res.status(200).json(geoData);
 
     } catch (error) {
-        console.error('SERVER FATAL ERROR:', error.message);
-        console.error('Full error:', JSON.stringify(error, null, 2));
+        console.error('SERVER ERROR:', error.message);
+        console.error('Error stack:', error.stack);
+        
+        // Handle multer-specific errors
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ 
+                error: 'File too large',
+                details: 'Maximum file size is 100MB'
+            });
+        }
+        
+        // Handle other errors
         res.status(500).json({ 
             error: `Internal Server Error: ${error.message}`,
-            details: error.stack 
+            details: 'Check server logs for more information'
         });
     }
 };
