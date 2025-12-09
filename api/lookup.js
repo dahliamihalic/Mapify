@@ -53,29 +53,44 @@ const runMiddleware = (req, res, fn) => {
     });
 };
 
-// Main serverless function handler
-module.exports = async (req, res) => {
-    // Set CORS headers - simple and permissive for Vercel
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    res.setHeader('Access-Control-Allow-Origin', req.headers.origin || '*');
+// CORS middleware
+function setCorsHeaders(req, res) {
+    const origin = req.headers.origin || '*';
+    
+    // Always set these headers for Vercel
+    res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, HEAD');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Max-Age', '86400');
+}
 
-    // Handle preflight (OPTIONS) requests
+// Main serverless function handler
+module.exports = async (req, res) => {
+    // FIRST: Set CORS headers immediately
+    setCorsHeaders(req, res);
+    
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    console.log('Origin:', req.headers.origin);
+    console.log('Content-Type:', req.headers['content-type']);
+
+    // Handle preflight (OPTIONS) requests BEFORE any other processing
     if (req.method === 'OPTIONS') {
+        console.log('✅ Preflight request handled');
         res.status(200).end();
         return;
     }
 
     // Only allow POST requests
     if (req.method !== 'POST') {
+        console.log('❌ Method not allowed:', req.method);
         return res.status(405).json({ error: 'Method not allowed. Use POST.' });
     }
 
     try {
         // Check if GeoIP database is loaded
         if (!reader) {
+            console.error('❌ GeoIP database not loaded');
             return res.status(503).json({ 
                 error: 'GeoIP database not available',
                 details: 'The GeoIP database failed to load. Please try again later.'
@@ -83,11 +98,15 @@ module.exports = async (req, res) => {
         }
 
         // Run multer middleware
+        console.log('Running multer middleware...');
         await runMiddleware(req, res, upload.single('zipFile'));
 
         if (!req.file) {
+            console.error('❌ No file uploaded');
             return res.status(400).json({ error: 'No ZIP file uploaded.' });
         }
+
+        console.log(`✅ File received: ${req.file.originalname} (${req.file.size} bytes)`);
 
         const zip = new AdmZip(req.file.buffer);
         const zipEntries = zip.getEntries();
@@ -109,7 +128,7 @@ module.exports = async (req, res) => {
             }
         }
 
-        console.log(`Received ZIP and combined ${combinedData.length} total records.`);
+        console.log(`Combined ${combinedData.length} total records from ZIP`);
 
         if (combinedData.length === 0) {
             return res.status(400).json({
@@ -148,7 +167,7 @@ module.exports = async (req, res) => {
             })
             .filter(data => data !== null && data.latitude && data.longitude);
 
-        console.log(`Successfully found ${geoData.length} geolocatable points.`);
+        console.log(`Successfully found ${geoData.length} geolocatable points`);
 
         if (geoData.length === 0) {
             return res.status(400).json({
@@ -158,10 +177,11 @@ module.exports = async (req, res) => {
         }
 
         // Send the final geolocated array back to the client
+        console.log('✅ Sending response with', geoData.length, 'geolocated records');
         res.status(200).json(geoData);
 
     } catch (error) {
-        console.error('SERVER ERROR:', error.message);
+        console.error('❌ SERVER ERROR:', error.message);
         console.error('Error stack:', error.stack);
         
         // Handle multer-specific errors

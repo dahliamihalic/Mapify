@@ -2,10 +2,18 @@ import { createContext, useState, useCallback } from "react";
 import axios from 'axios';
 
 // Define the URL for your Node.js GeoIP server
-// Use relative URL in production (Vercel), localhost in development
-const LOOKUP_URL = import.meta.env.PROD 
-    ? '/api/lookup' 
-    : 'http://localhost:3001/lookup'; 
+// Detect if we're on Vercel or localhost
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const LOOKUP_URL = isLocalhost
+    ? 'http://localhost:3001/lookup' 
+    : '/api/lookup';
+
+console.log('Environment Info:', {
+    isLocalhost,
+    hostname: window.location.hostname,
+    LOOKUP_URL,
+    nodeEnv: import.meta.env.MODE
+}); 
 
 /**
  * 1. Define the Context and its shape
@@ -79,14 +87,26 @@ export const DataProvider = ({ children }) => {
         } catch (err) {
             console.error("GeoIP Lookup Error:", err.message);
             console.error("Full error details:", err);
+            console.error("Request URL:", LOOKUP_URL);
+            console.error("Request was to:", err.config?.url || "Unknown URL");
+            
             let errorMessage = "An unknown error occurred during server processing.";
             
             if (err.response?.data?.error) {
                 errorMessage = err.response.data.error;
+                if (err.response.data.details) {
+                    errorMessage += ` - ${err.response.data.details}`;
+                }
             } else if (err.response?.status === 403) {
-                errorMessage = "Access Forbidden (403) - CORS or authentication issue";
+                errorMessage = "Access Forbidden (403) - Check API endpoint and CORS configuration";
+            } else if (err.response?.status === 405) {
+                errorMessage = `Method Not Allowed (405) - ${err.response.data?.error || 'Check request method'}`;
             } else if (err.response?.status === 500) {
                 errorMessage = `Server Error: ${err.response.data?.error || err.message}`;
+            } else if (err.response?.status === 503) {
+                errorMessage = `Service Unavailable: ${err.response.data?.error || 'Server is initializing'}`;
+            } else if (err.code === 'ERR_NETWORK') {
+                errorMessage = `Network Error - Could not reach ${LOOKUP_URL}`;
             } else if (err.message) {
                 errorMessage = err.message;
             }
