@@ -8,6 +8,7 @@ node_modules
 server/converter.ipynb
 server/reader.js
 server/build_device_mapping.py
+server/package.json
 
 # IDE files
 .vscode

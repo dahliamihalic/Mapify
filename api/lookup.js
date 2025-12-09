@@ -15,11 +15,16 @@ let reader;
 const dbPath = path.resolve(__dirname, '../server/data', 'GeoLite2-City.mmdb');
 
 try {
+    if (!fs.existsSync(dbPath)) {
+        throw new Error(`GeoIP database not found at: ${dbPath}`);
+    }
     const dbBuffer = fs.readFileSync(dbPath);
     reader = Reader.openBuffer(dbBuffer);
-    console.log("✅ GeoIP database loaded successfully.");
+    console.log("✅ GeoIP database loaded successfully from:", dbPath);
 } catch (error) {
     console.error("❌ Failed to load GeoIP database:", error.message);
+    console.error("Database path attempted:", dbPath);
+    console.error("Current working directory:", process.cwd());
 }
 
 // Helper function to run multer middleware
@@ -64,6 +69,14 @@ module.exports = async (req, res) => {
     }
 
     try {
+        // Check if GeoIP database is loaded
+        if (!reader) {
+            return res.status(503).json({ 
+                error: 'GeoIP database not available',
+                details: 'The GeoIP database failed to load. Please try again later.'
+            });
+        }
+
         // Run multer middleware
         await runMiddleware(req, res, upload.single('zipFile'));
 
