@@ -39,7 +39,7 @@ const InfoForm = () => {
                 onChange={handleChange}
                 required
                 style={{
-                    backgroundImage: `url('/src/assets/artwork/${mode === 'light' ? 'light-name-box.svg' : 'dark-name-box.svg'}')`,
+                    backgroundImage: `url('/${mode === 'light' ? 'light-name-box.svg' : 'dark-name-box.svg'}')`,
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',
@@ -57,7 +57,7 @@ const InfoForm = () => {
                 type="submit" 
                 disabled={data.name.trim() === ""}
                 style={{
-                    backgroundImage: `url('/src/assets/artwork/${mode === 'light' ? 'Light-Submit-Button.svg' : 'dark-submit-button.svg'}')`,
+                    backgroundImage: `url('/${mode === 'light' ? 'Light-Submit-Button.svg' : 'dark-submit-button.svg'}')`,
                     backgroundSize: 'contain',
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'center',

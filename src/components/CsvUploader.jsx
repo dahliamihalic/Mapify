@@ -48,7 +48,7 @@ const CsvUploader = () => {
                     disabled={isLoading}
                     className="upload-button"
                     style={{
-                        backgroundImage: `url('/src/assets/artwork/${mode === 'light' ? 'Light-Upload-Button.svg' : 'dark-upload-buttom.svg'}')`,
+                        backgroundImage: `url('/${mode === 'light' ? 'Light-Upload-Button.svg' : 'dark-upload-buttom.svg'}')`,
                         backgroundSize: 'contain',
                         backgroundRepeat: 'no-repeat',
                         backgroundPosition: 'center',

@@ -83,7 +83,7 @@ main {
     color: var(--LM-text-color);
 
     .Mapify-Logo {
-      background-image: url('src/assets/artwork/Mapify-Light.svg');
+      background-image: url('/Mapify-Light.svg');
 
     }
 
