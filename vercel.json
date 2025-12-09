@@ -4,6 +4,7 @@
   "functions": {
     "api/lookup.js": {
       "maxDuration": 300,
+      "memory": 2048
     }
   },
   "rewrites": [
