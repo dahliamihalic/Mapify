@@ -16,7 +16,8 @@ const port = 3001;
 // 1. CORS setup (Allows client on 5173 to connect to 3001)
 const allowedOrigins = [
     'http://localhost:5173',
-    'http://127.0.0.1:5173' 
+    'http://127.0.0.1:5173',
+    'https://inyourhead-lac.vercel.app/' 
 ];
 app.use(cors({ 
     origin: (origin, callback) => {
