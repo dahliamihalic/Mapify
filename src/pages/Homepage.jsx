@@ -1,7 +1,7 @@
 import Wrapper from "../components/Wrapper";
 import { Link } from "react-router-dom";
 import CsvUploader from "../components/CsvUploader";
-import InfoForm from "../components/InfoForm";
+import InfoForm from "../components/infoForm";
 
 const HomePage = () => {
     return (
