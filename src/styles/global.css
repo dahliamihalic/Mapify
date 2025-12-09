@@ -1,0 +1,403 @@
+:root {
+  color-scheme: light dark;
+
+  --LM-text-color: #040605;
+  --LM-background-color: #f9fbfa;
+  --LM-text-contrast-color: #040605;
+  --DM-text-color: #f9fbfa;
+  --DM-background-color: #040605;
+  --DM-text-contrast-color: #f9fbfa;
+
+  --title-font-family: "DM Serif Text", serif;
+  --body-font-family: "Roboto Flex", sans-serif;
+  --font-weight: 400;
+  --font-style: normal;
+
+  /*d62839-ba324f-175676-4ba3c3-cce6f4*/
+  /*Scheme 1/Light Mode: bomb pop*/
+  --LM-primary: #4ba3c3;
+  --LM-secondary: #175676;
+  --LM-blue-accent: #cce6f4;
+  --LM-red-background-color: #d62839;
+  --LM-red-accent: #ba324f;
+  --LM-section-bg: #cce6f4;
+  --LM-link-color: var(--LM-secondary);
+  --LM-link-hover-color: var(--LM-primary);
+  /*Original:      395e66-387d7a-32936f-26a96c-2bc016*/
+  /*Dark mode ver: 9abec6-84c8c3-6bcca9-55d89b-53e93f*/
+  /*Scheme 2/Dark Mode: green*/
+  --DM-primary: #55d89b;
+  --DM-secondary: #6bcca9;
+  --DM-accent: #84c8c3;
+  --DM-green-background-color: #53e93f;
+  --DM-blue-accent: #9abec6;
+  --DM-section-bg: #55d89b0d;
+  --DM-link-color: var(--DM-blue-accent);
+  --DM-link-hover-color: var(--DM-accent);
+  /* border */
+  --border-radius: 8px;
+  --border-color: #595959;
+  /* shadow */
+  --box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --success-color: var(--DM-green-background-color);
+  --error-color: var(--LM-red-background-color);
+}
+
+body {
+  font-size: 1rem;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+.tooltip {
+  background-color: var(--LM-background-color);
+  color: var(--LM-text-color);
+}
+
+text {
+  fill: var(--DM-text-color);
+}
+
+.mode-button{
+  position: absolute;
+  top:5px;
+  right:5px;
+}
+
+main {
+  height: 100%;
+  min-height: 100vh;
+  display: block;
+  margin: 0;
+  font-family: var(--body-font-family);
+
+  .Mapify-Logo {
+    background-image: url('src/assets/artwork/Mapify-Dark.svg');
+
+  }
+
+
+  &.light {
+    background-color: var(--LM-background-color);
+    color: var(--LM-text-color);
+
+    .Mapify-Logo {
+      background-image: url('src/assets/artwork/Mapify-Light.svg');
+
+    }
+
+    h1,
+    h5,
+    h6,
+    p {
+      color: var(--LM-text-color);
+    }
+
+    h2,
+    h3,
+    h4 {
+      color: var(--LM-primary);
+    }
+
+    a {
+      color: var(--LM-link-color);
+    }
+
+    text {
+      fill: var(--LM-text-color);
+    }
+
+    a:hover {
+      color: var(--LM-link-hover-color);
+    }
+
+    button {
+      background-color: var(--LM-blue-accent);
+      color: var(--LM-text-color);
+    }
+
+    button:hover {
+      background-color: var(--LM-primary);
+    }
+
+    #tooltip {
+      background-color: var(--LM-background-color);
+      color: var(--LM-text-color);
+    }
+  }
+}
+
+.Mapify-Logo {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  height: 20vh;
+  width: 40vw;
+  margin: 0 auto;
+  display: block;
+}
+
+h1,
+h5,
+h6 {
+  color: var(--DM-text-color);
+  font-family: var(--font-family);
+  margin-bottom: 0.625rem;
+}
+
+h2,
+h3,
+h4 {
+  color: var(--DM-primary);
+}
+
+h1 {
+  font-size: 2rem;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.8rem;
+  text-align: center;
+}
+
+h3 {
+  font-size: 1.6rem;
+}
+
+h4 {
+  font-size: 1.4rem;
+}
+
+h5 {
+  font-size: 1.2rem;
+}
+
+h6 {
+  font-size: 1rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--title-font-family);
+}
+
+p {
+  font-size: 1.125rem;
+  color: var(--DM-text-color);
+  margin-bottom: 1.25rem;
+}
+
+a {
+  color: var(--DM-link-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a:hover {
+  color: var(--DM-link-hover-color);
+}
+
+ul,
+ol {
+  padding-left: 1.25rem;
+}
+
+li {
+  margin-bottom: 0.3125rem;
+}
+
+#root {
+  padding: 0;
+  max-width: 100%;
+  margin: 0;
+  text-align: center;
+  min-height: 100vh;
+  background-color: var(--DM-background-color);
+  color: var(--DM-text-color);
+
+  &.light {
+    background-color: var(--LM-background-color);
+    color: var(--LM-text-color);
+  }
+}
+
+.section {
+  padding: 4rem;
+}
+
+.section+.section {
+  margin-top: -4rem;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sr-only {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3rem;
+  width: 100%;
+  margin: 2rem auto;
+  padding: 1rem 0;
+}
+
+.ip-map-container {
+  flex: 2;
+  max-width: 900px;
+}
+
+.text-col-r {
+  flex: 1;
+  text-align: left;
+  padding-top: 12rem; 
+}
+.text-col-r ol {
+  font-size: 1.2rem;
+  line-height: 1.7rem;
+}
+
+@media screen and (max-width: 900px) {
+  .row {
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .text-col-r {
+    text-align: center;
+    padding-top: 0;
+  }
+}
+
+
+/* Tablet Styles */
+@media screen and (max-width: var(--tablet)) {
+  body {
+    font-size: 1rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  h2 {
+    font-size: 1.8rem;
+  }
+
+  h3 {
+    font-size: 1.6rem;
+  }
+
+  h4 {
+    font-size: 1.4rem;
+  }
+
+  h5 {
+    font-size: 1.2rem;
+  }
+
+  h6 {
+    font-size: 1rem;
+  }
+
+  p {
+    font-size: 1rem;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.25rem;
+  }
+
+  .section {
+    padding: 3rem 1.5rem;
+  }
+
+  .container {
+    max-width: 950px;
+  }
+}
+
+/* Mobile Styles */
+@media screen and (max-width: var(--mobile)) {
+  body {
+    font-size: 0.875rem;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  h2 {
+    font-size: 1.6rem;
+  }
+
+  h3 {
+    font-size: 1.4rem;
+  }
+
+  h4 {
+    font-size: 1.2rem;
+  }
+
+  h5 {
+    font-size: 1rem;
+  }
+
+  h6 {
+    font-size: 0.9rem;
+  }
+
+  p {
+    font-size: 0.9rem;
+  }
+
+  ul,
+  ol {
+    padding-left: 1.125rem;
+  }
+
+  .section {
+    padding: 3rem 1rem;
+  }
+
+  .container {
+    max-width: 100%;
+  }
+
+  .flex-container {
+    flex-direction: column;
+  }
+}
+
+/* button*/
+button {
+  background-color: var(--DM-secondary);
+  color: var(--DM-text-color);
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: var(--DM-accent);
+}

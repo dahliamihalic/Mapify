@@ -1,0 +1,24 @@
+# Development files
+node_modules
+.env.local
+.env.development
+.env.test
+
+# Server files (not needed as they're converted to serverless)
+server/converter.ipynb
+server/reader.js
+server/build_device_mapping.py
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+
+# Other
+.DS_Store
+changes.md
