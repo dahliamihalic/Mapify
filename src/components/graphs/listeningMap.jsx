@@ -139,7 +139,7 @@ const ListeningMap = () => {
             .attr("class", "ip-point")
             .attr("cx", d => projection([d.longitude, d.latitude])?.[0])
             .attr("cy", d => projection([d.longitude, d.latitude])?.[1])
-            .attr("r", 4)
+            .attr("r", 2)
             .attr("fill", "#ba324f")
             .attr("opacity", 0.75)
             .on("mouseover", (event, d) => {
@@ -156,8 +156,8 @@ const ListeningMap = () => {
             })
             .on("mousemove", event => {
                 d3.select("#ip-tooltip")
-                    .style("left", event.pageX + 10 + "px")
-                    .style("top", event.pageY - 20 + "px");
+                    .style("left", (event.clientX + 10) + "px")
+                    .style("top", (event.clientY + 10) + "px");
             })
             .on("mouseout", () => d3.select("#ip-tooltip").style("opacity", 0));
 
@@ -210,14 +210,15 @@ const ListeningMap = () => {
                 <div
                     id="ip-tooltip"
                     style={{
-                        position: "absolute",
+                        position: "fixed",
                         opacity: 0,
                         background: "white",
                         padding: "8px",
                         borderRadius: "6px",
                         border: "1px solid black",
                         pointerEvents: "none",
-                        zIndex: 1000
+                        zIndex: 1000,
+                        color: "black"
                     }}
                 ></div>
             </div>

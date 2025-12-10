@@ -13,7 +13,7 @@ const DeviceStats = () => {
         if (!filteredData || filteredData.length === 0) return;
 
         const margin = { top: 20, right: 150, bottom: 60, left: 90 };
-        const width = 800 - margin.left - margin.right;
+        const width = 1200 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
 
         const svgEl = d3.select(svgRef.current);

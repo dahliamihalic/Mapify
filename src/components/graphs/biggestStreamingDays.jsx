@@ -6,10 +6,12 @@ import { useContext } from 'react';
 import { DataContext } from '../../contexts/DataContext.jsx';
 import { ModeContext } from "../../contexts/ModeContext.jsx";
 
-const BiggestStreamingDays = ({ width, height }) => {
+const BiggestStreamingDays = () => {
     const { data } = useContext(DataContext);
     const { mode } = useContext(ModeContext);
     const margin = { top: 30, right: 20, bottom: 60, left: 50 };
+    const width = 500;
+    const height = 500;
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
     const ref = useRef();
