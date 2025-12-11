@@ -50,7 +50,7 @@ const UploadWizard = () => {
         <div style={{ textAlign: "center", marginTop: "40px" }}>
 
             {/* STEP TITLES */}
-            {step === 1 && <h2>Step 1: Upload ZIP File</h2>}
+            {step === 1 && <h2>Step 1: Upload Your Spotify Extended Streaming History</h2>}
             {step === 2 && <h2>Step 2: Wait Just A Moment…</h2>}
             {step === 3 && <h2>Step 3: Enter Your Name</h2>}
 
