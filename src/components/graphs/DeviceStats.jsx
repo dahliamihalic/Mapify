@@ -171,7 +171,6 @@ const DeviceStats = () => {
 
     return (
         <>
-            <h3>Your Device Stats</h3>
             <svg ref={svgRef}></svg>
         </>);
 };

@@ -11,14 +11,14 @@ const DeviceStatsText = () => {
     const svgRef = useRef();
     useEffect(() => {
         if (!data || !Array.isArray(data) || data.length === 0) return;
-        
+
         // Extract device model from platform string (e.g., "iOS 9.2.1 (iPhone5,1)" -> "iPhone5,1")
         const extractDeviceModel = (platform) => {
             if (!platform) return 'Unknown';
             const match = platform.match(/\(([^)]+)\)/);
             return match ? match[1] : platform;
         };
-        
+
         const margin = { top: 30, right: 0, bottom: 60, left: 0 };
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
@@ -34,6 +34,10 @@ const DeviceStatsText = () => {
         svg
             .attr("width", width)
             .attr("height", height);
+        svg.append("h1")
+            .attr("x", 10)
+            .attr("y", margin.top)
+            .text("Your Device Stats");
         const textColor = mode === 'light' ? '#040605' : '#f9fbfa';
         svg.append("text")
             .attr("x", 10)
