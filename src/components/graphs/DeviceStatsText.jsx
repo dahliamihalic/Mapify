@@ -36,7 +36,7 @@ const DeviceStatsText = () => {
             .attr("height", height);
         const textColor = mode === 'light' ? '#040605' : '#f9fbfa';
         svg.append("text")
-            .attr("x", width / 2 -50)
+            .attr("x", 0)
             .attr("y", margin.top)
             .attr("text-anchor", "middle")
             .attr("font-size", "24px")
@@ -45,7 +45,7 @@ const DeviceStatsText = () => {
             .text("Top Devices Used");
         platforms.slice(0, 3).forEach((platform, index) => {
             svg.append("text")
-                .attr("x", width / 2 - 50)
+                .attr("x", 0)
                 .attr("y", margin.top + 40 + index * 40)
                 .attr("text-anchor", "middle")
                 .attr("font-size", "18px")
