@@ -4,6 +4,13 @@ const path = require('path');
 const fs = require('fs');
 const AdmZip = require('adm-zip');
 
+module.exports.config = {
+    api: {
+        bodyParser: false
+    }
+};
+
+
 // Initialize multer for file uploads in serverless environment
 const upload = multer({
     storage: multer.memoryStorage(),
