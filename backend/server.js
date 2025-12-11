@@ -4,144 +4,118 @@ const multer = require('multer');
 const Reader = require('@maxmind/geoip2-node').Reader;
 const path = require('path');
 const fs = require('fs');
-const AdmZip = require('adm-zip'); 
+const AdmZip = require('adm-zip');
 
 const app = express();
 const port = process.env.PORT || 3001;
 
-// most of this was done by AI, we did not have too much knowledge of express servers, but my (Dahlia) experience with 
-// my 390 final paid off a bit.
-// --- Configuration and Initialization ---
+// ---------------- CORS -----------------
+app.use(cors()); 
+// (You can lock this down later once deployed)
 
-// 1. CORS setup (Allows client on 5173 to connect to 3001)
-const allowedOrigins = [
-    'http://localhost:5173',
-    'https://inyourhead-lac.vercel.app',
-    /.*/   // allow all (temporary, simplify)
-];
-
-app.use(cors({ 
-    origin: (origin, callback) => {
-        if (!origin) return callback(null, true); 
-        if (allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error(`Origin ${origin} not allowed by CORS`), false);
-        }
-    }
-})); 
-
-// 2. Multer setup: store the uploaded ZIP file in memory (max 100MB)
-const upload = multer({ 
+// ---------------- File Upload Setup -----------------
+const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 100 * 1024 * 1024 } 
-}); 
+    limits: { fileSize: 100 * 1024 * 1024 }  // 100 MB ZIP limit
+});
 
-// 3. Load the GeoIP database
+// ---------------- Load GeoIP Database -----------------
 let reader;
-const dbPath = path.resolve(__dirname, 'GeoLite2-City.mmdb');
+const dbPath = path.join(__dirname, "data", "GeoLite2-City.mmdb");
 
 try {
+    if (!fs.existsSync(dbPath)) {
+        console.error("❌ GeoIP database missing at:", dbPath);
+        process.exit(1);
+    }
+
     const dbBuffer = fs.readFileSync(dbPath);
     reader = Reader.openBuffer(dbBuffer);
-    console.log("✅ GeoIP database loaded successfully.");
-} catch (error) {
-    console.error("❌ Failed to load GeoIP database. Check path and file existence:", error.message);
-    process.exit(1); 
+    console.log("✅ GeoIP database loaded from:", dbPath);
+} catch (err) {
+    console.error("❌ Failed loading GeoIP:", err.message);
+    process.exit(1);
 }
 
-// --- The GeoIP Lookup Endpoint ---
+// ------------------- /lookup endpoint -------------------
 
 app.post('/lookup', upload.single('zipFile'), async (req, res) => {
     if (!req.file) {
-        return res.status(400).send('Error: No ZIP file uploaded.');
+        return res.status(400).json({ error: "No ZIP file uploaded." });
     }
-    
+
     try {
         const zip = new AdmZip(req.file.buffer);
-        const zipEntries = zip.getEntries();
+        const entries = zip.getEntries();
         let combinedData = [];
 
-        // 1. Iterate through files and combine JSON content
-        for (const entry of zipEntries) {
-            const entryName = entry.entryName;
-            
-            // Filter for JSON files, ignoring directories and Mac metadata
-            if (entryName.toLowerCase().endsWith('.json') && !entry.isDirectory && !entryName.startsWith('__MACOSX')) {
-                
-                const jsonBuffer = entry.getData();
-                const jsonString = jsonBuffer.toString('utf8');
-                
-                let jsonArray = JSON.parse(jsonString);
-                
-                if (Array.isArray(jsonArray)) {
-                    combinedData.push(...jsonArray);
+        // Read all JSON files inside the ZIP
+        for (const entry of entries) {
+            if (
+                entry.entryName.toLowerCase().endsWith('.json') &&
+                !entry.isDirectory &&
+                !entry.entryName.startsWith('__MACOSX')
+            ) {
+                const content = entry.getData().toString('utf8');
+                const parsed = JSON.parse(content);
+
+                if (Array.isArray(parsed)) {
+                    combinedData.push(...parsed);
                 }
             }
         }
-        
-        console.log(`Received ZIP and combined ${combinedData.length} total records.`);
 
         if (combinedData.length === 0) {
-             return res.status(400).json({ 
-                error: "File processed, but no valid data could be extracted.", 
-                details: "Check that the ZIP contains JSON files and they are correctly formatted."
+            return res.status(400).json({
+                error: "ZIP loaded, but no JSON array content found."
             });
         }
-        
-        // --- 2. Perform GeoIP Lookup on Combined Data ---
-        
-        let validCount = 0;
 
-        const geoData = combinedData
-            // Use the correct Spotify column name: 'ip_addr'
-            .filter(row => row.ip_addr) 
+        // Perform GeoIP lookups
+        const result = combinedData
+            .filter(row => row.ip_addr)
             .map(row => {
                 const ip = row.ip_addr;
-                
+
+                // Skip private networks
+                if (
+                    ip.startsWith("192.168.") ||
+                    ip.startsWith("10.") ||
+                    ip.startsWith("172.16.")
+                ) {
+                    return null;
+                }
+
                 try {
-                    // Quick filter for private/local IPs before GeoIP lookup
-                    if (ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('172.16.')) {
-                        return null; 
-                    }
-                    
-                    const response = reader.city(ip);
-                    validCount++;
-                    
+                    const data = reader.city(ip);
                     return {
-                        ...row, 
-                        latitude: response.location.latitude,
-                        longitude: response.location.longitude,
-                        city: response.city.names.en || null,
-                        country: response.country.isoCode || null,
+                        ...row,
+                        latitude: data.location.latitude,
+                        longitude: data.location.longitude,
+                        city: data.city?.names?.en || null,
+                        country: data.country?.isoCode || null,
                     };
-                } catch (e) {
-                    return null; 
+                } catch {
+                    return null;
                 }
             })
-            // Final filter for successful lookups
-            .filter(data => data !== null && data.latitude && data.longitude);
+            .filter(Boolean);
 
-        console.log(`Successfully found ${geoData.length} geolocatable points.`);
-
-        if (geoData.length === 0) {
-             return res.status(400).json({ 
-                error: "File processed, but no valid, geolocatable IP addresses were found.", 
-                details: `Out of ${combinedData.length} records, none matched a public GeoIP address.`
+        if (result.length === 0) {
+            return res.status(400).json({
+                error: "No valid public IP addresses found in the ZIP."
             });
         }
 
-        // 3. Send the final geolocated array back to the client
-        res.json(geoData);
+        res.json(result);
 
-    } catch (error) {
-        console.error('SERVER FATAL ERROR:', error);
-        res.status(500).send(`Internal Server Error: ${error.message}`);
+    } catch (err) {
+        console.error("SERVER ERROR:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 
-// --- Start the Server ---
-
+// ---------------- Start Server -----------------
 app.listen(port, () => {
-    console.log(`🚀 GeoIP Lookup Server running on http://localhost:${port}`);
+    console.log(`🚀 Railway GeoIP server running on port ${port}`);
 });

@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "client": "vite",
-    "server": "node ./server/server.js",
+    "server": "node ./backend/server.js",
     "start": "npm run dev"
   },
   "dependencies": {
