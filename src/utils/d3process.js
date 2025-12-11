@@ -15,6 +15,13 @@ const LM_RANKED_COLORS = [
     "#BA324F4d", "#BA324F33", "#BA324F1a", "#BA324F0d"
 ];
 
+const LM_RANKED_COLORS_ALT = [
+    "#175676f2", "#175676d9", "#175676bf","#175676a6", "#1756768c",
+    "#17567673", "#17567659", "#17567640","#17567626", "#175676e6", 
+    "#175676cc", "#175676b3", "#17567699", "#17567666", "#17567666", 
+    "#1756764d", "#17567633", "#1756761a", "#1756760d"
+];
+
 // Dark Mode: 20 visually distinct, accessible colors
 const DM_COLORS = [
     "#55D89B", "#6BCCA9", "#84C8C3", "#53E93F", "#9ABEC6",
@@ -31,14 +38,16 @@ const DM_RANKED_COLORS = [
     "#6bcca94d", "#6bcca933", "#6bcca91a", "#6bcca90d"
 ];
 
-/**
- * Creates a D3 ordinal color scale for categories (up to 20)
- * @param {Array} categories - Array of platform/device names
- * @param {string} mode - "light" or "dark" 
- * @param {string} theme - constant or rank
- */
-export const createColorScale = (categories = [], mode = "dark", theme = "constant") => {
-    const baseColors = mode === "light" ? (theme === "constant" ? LM_COLORS : LM_RANKED_COLORS) : (theme === "constant" ? DM_COLORS : DM_RANKED_COLORS);
+const DM_RANKED_COLORS_ALT = [
+    "#53E93Ff2", "#53E93Fd9", "#53E93Fbf","#53E93Fa6", "#53E93F8c",
+    "#53E93F73", "#53E93F59", "#53E93F40","#53E93F26", "#53E93Fe6", 
+    "#53E93Fcc", "#53E93Fb3", "#53E93F99", "#53E93F66", "#53E93F66", 
+    "#53E93F4d", "#53E93F33", "#53E93F1a", "#53E93F0d"
+];
+
+
+export const createColorScale = (categories = [], mode = "dark", theme = "constant", alt=false) => {
+    const baseColors = mode === "light" ? (theme === "constant" ? LM_COLORS : alt ? LM_RANKED_COLORS_ALT : LM_RANKED_COLORS) : (theme === "constant" ? DM_COLORS : alt ? DM_RANKED_COLORS_ALT : DM_RANKED_COLORS);
 
     // If more than 20 categories, repeat the palette
     const colorRange = categories.map((_, i) => baseColors[i % baseColors.length]);

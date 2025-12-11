@@ -53,7 +53,7 @@ const MostPicked = () => {
         const treeGen = d3.treemap().size([width, height]).padding(4);
         treeGen(hierarchy);
 
-        const color = createColorScale(pickCounts, mode, "rank");
+        const color = createColorScale(pickCounts, mode, "rank", true);
 
         // === CREATE TOOLTIP (ONE ONLY!) ===
         const tooltip = d3

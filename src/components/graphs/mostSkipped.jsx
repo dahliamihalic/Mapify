@@ -53,7 +53,7 @@ const MostSkipped = () => {
             .append("g")
             .attr("class", "arc");
         
-        const color = createColorScale(skipCounts, mode, "rank");
+        const color = createColorScale(skipCounts, mode, "rank", true);
         
         arcs.append("path")
             .attr("d", arc)

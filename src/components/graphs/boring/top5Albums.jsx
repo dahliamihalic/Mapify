@@ -29,7 +29,7 @@ const top5Albums = () => {
             .domain(albumCounts.map((d) => d.album))
             .range([0, width])
             .padding(0.1);
-        const colorScale = createColorScale(albumCounts, mode, "rank");
+        const colorScale = createColorScale(albumCounts, mode, "rank", true);
         colorScale.domain(albumCounts.map((d) => d.album));
         const yScale = d3
             .scaleLinear()
