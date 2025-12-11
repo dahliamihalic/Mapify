@@ -29,16 +29,10 @@ const TotalStreamingTime = () => {
         const accentColor = mode === 'light' ? '#4ba3c3' : '#55d89b';
         svg.append("text")
             .attr("x", width / 2)
-            .attr("y", margin.top)
-            .attr("text-anchor", "middle")
-            .attr("font-size", "24px")
-            .attr("fill", textColor)
-            .text("Total Streaming Time");
-        svg.append("text")
-            .attr("x", width / 2)
             .attr("y", height / 2 - 20)
             .attr("text-anchor", "middle")
             .attr("font-size", "64px")
+            .attr("font-weight", "bold")
             .attr("fill", accentColor)
             .text(`${totalHours} hrs`);
         svg.append("text")

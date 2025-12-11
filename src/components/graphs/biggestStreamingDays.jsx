@@ -9,8 +9,8 @@ import { ModeContext } from "../../contexts/ModeContext.jsx";
 const BiggestStreamingDays = () => {
     const { data } = useContext(DataContext);
     const { mode } = useContext(ModeContext);
-    const margin = { top: 30, right: 10, bottom: 60, left: 40 };
-    const width = 500;
+    const margin = { top: 30, right: 10, bottom: 60, left: 30 };
+    const width = 450;
     const height = 500;
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
