@@ -18,6 +18,6 @@
 
 ## TODO
 - [ ] combine csv uploader and info form
-- [ ] fix the broken chart
-- [ ] add the missing chart
+- [DONE YAY] fix the broken chart
+- [DONE YAY] add the missing chart
 - [ ] clean up the css on everythiing
