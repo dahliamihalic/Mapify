@@ -69,6 +69,10 @@ const MostPicked = () => {
             .style("background", "white")
             .style("display", "none");
 
+        const hideTooltip = () => {
+            tooltip.style("display", "none");
+        };
+
         // === DRAW RECTANGLES ===
         const leaves = hierarchy.leaves();
 
@@ -98,9 +102,11 @@ const MostPicked = () => {
                     .style("top", event.pageY - 10 + "px");
             })
             .on("mouseout", function () {
-                tooltip.style("display", "none");
+                hideTooltip();
                 d3.select(this).style("opacity", 1);
             });
+
+        d3.select(svgRef.current).on("mouseleave", hideTooltip);
 
         // === WRAPPED TEXT USING foreignObject ===
         svg.selectAll("foreignObject")

@@ -28,6 +28,48 @@ const top5tracks = () => {
             .slice(0, 5);
         const svg = d3.select(ref.current);
         svg.selectAll("*").remove();
+
+        const tooltip = d3.select("body")
+            .selectAll(".top5-tracks-tooltip")
+            .data([null])
+            .join("div")
+            .attr("class", "tooltip top5-tracks-tooltip")
+            .style("position", "absolute")
+            .style("padding", "8px 12px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px")
+            .style("z-index", "1000")
+            .style("background", "white")
+            .style("color", "black")
+            .style("display", "none")
+            .style("opacity", 0);
+
+        const showTooltip = (event, d) => {
+            tooltip
+                .style("display", "block")
+                .style("opacity", 1)
+                .html(`
+                    <strong>Track: ${d.track}</strong><br/>
+                    <strong>Artist:</strong> ${d.artist}<br/>
+                    <strong>Album: </strong>${d.album}<br/>
+                    <strong>Plays:</strong> ${d.count}
+                `)
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 10}px`);
+            d3.select(event.currentTarget).style("opacity", 0.7);
+        };
+
+        const moveTooltip = (event) => {
+            tooltip
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 10}px`);
+        };
+
+        const hideTooltip = (target) => {
+            tooltip.style("opacity", 0).style("display", "none");
+            if (target) d3.select(target).style("opacity", 1);
+        };
         const xScale = d3
             .scaleBand()
             .domain(trackCounts.map((d) => d.track))
@@ -55,36 +97,11 @@ const top5tracks = () => {
             .attr("width", xScale.bandwidth())
             .attr("height", (d) => height - yScale(d.count))
             .attr("fill", (d, i) => colorScale(i))
-            .on("mouseover", function(event, d) { //tooltips (theoretically)
-                            const tooltip = d3.select("body").append("div")
-                                .attr("class", "tooltip")
-                                .style("position", "absolute")
-                                .style("padding", "8px 12px")
-                                .style("border-radius", "4px")
-                                .style("pointer-events", "none")
-                                .style("font-size", "12px")
-                                .style("z-index", "1000")
-                                .style("left", (event.pageX + 10) + "px")
-                                .style("top", (event.pageY - 10) + "px");
-                            
-                            tooltip.html(`
-                                <strong>Track: ${d.track}</strong><br/>
-                                <strong>Artist:</strong> ${d.artist}<br/>
-                                <strong>Album: </strong>${d.album}<br/>
-                                <strong>Plays:</strong> ${d.count}
-                            `);
-                            
-                            d3.select(this).style("opacity", 0.7);
-                        })
-                        .on("mousemove", function(event) {
-                            d3.select(".tooltip")
-                                .style("left", (event.pageX + 10) + "px")
-                                .style("top", (event.pageY - 10) + "px");
-                        })
-                        .on("mouseout", function() {
-                            d3.select(".tooltip").remove();
-                            d3.select(this).style("opacity", 1);
-                        });
+            .on("mouseover", (event, d) => showTooltip(event, d))
+            .on("mousemove", (event) => moveTooltip(event))
+            .on("mouseout", (event) => hideTooltip(event.currentTarget));
+
+        svg.on("mouseleave", () => hideTooltip());
         chart
             .append("g")
             .attr("transform", `translate(0,${height})`)
@@ -100,6 +117,11 @@ const top5tracks = () => {
             .attr("font-size", "22px")
             .attr("font-weight", "bold")
             .text("Top 5 Tracks");
+
+        return () => {
+            tooltip.remove();
+            svg.selectAll("*").remove();
+        };
     }, [data, mode]);
 
     return <svg ref={ref}></svg>;

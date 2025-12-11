@@ -50,6 +50,46 @@ const BiggestStreamingDays = () => {
         const svg = d3.select(ref.current);
         svg.selectAll("*").remove();
 
+        const tooltip = d3.select("body")
+            .selectAll(".biggest-days-tooltip")
+            .data([null])
+            .join("div")
+            .attr("class", "tooltip biggest-days-tooltip")
+            .style("position", "absolute")
+            .style("padding", "8px 12px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px")
+            .style("z-index", "1000")
+            .style("background", "white")
+            .style("color", "black")
+            .style("display", "none")
+            .style("opacity", 0);
+
+        const showTooltip = (event, d) => {
+            tooltip
+                .style("display", "block")
+                .style("opacity", 1)
+                .html(`
+                    <strong>${d.date}</strong><br/>
+                    Minutes Streamed: ${d.minutes.toFixed(2)}
+                `)
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 10}px`);
+            d3.select(event.currentTarget).style("opacity", 0.7);
+        };
+
+        const moveTooltip = (event) => {
+            tooltip
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 10}px`);
+        };
+
+        const hideTooltip = (target) => {
+            tooltip.style("opacity", 0).style("display", "none");
+            if (target) d3.select(target).style("opacity", 1);
+        };
+
         console.log("DATA FOR SCALE:", data);
 
         const xScale = d3
@@ -86,34 +126,11 @@ const BiggestStreamingDays = () => {
             .attr("width", xScale.bandwidth())
             .attr("height", (d) => innerHeight - yScale(d.minutes))
             .attr("fill", (d) => colorScale(d.date))
-            .on("mouseover", function (event, d) { //tooltips (theoretically)
-                const tooltip = d3.select("body").append("div")
-                    .attr("class", "tooltip")
-                    .style("position", "absolute")
-                    .style("padding", "8px 12px")
-                    .style("border-radius", "4px")
-                    .style("pointer-events", "none")
-                    .style("font-size", "12px")
-                    .style("z-index", "1000")
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 10) + "px");
+            .on("mouseover", (event, d) => showTooltip(event, d))
+            .on("mousemove", (event) => moveTooltip(event))
+            .on("mouseout", (event) => hideTooltip(event.currentTarget));
 
-                tooltip.html(`
-                    <strong>${d.date}</strong><br/>
-                    Minutes Streamed: ${d.minutes.toFixed(2)}
-                `);
-
-                d3.select(this).style("opacity", 0.7);
-            })
-            .on("mousemove", function (event) {
-                d3.select(".tooltip")
-                    .style("left", (event.pageX + 10) + "px")
-                    .style("top", (event.pageY - 10) + "px");
-            })
-            .on("mouseout", function () {
-                d3.select(".tooltip").remove();
-                d3.select(this).style("opacity", 1);
-            });
+        svg.on("mouseleave", () => hideTooltip());
 
         // x-axis
         g.append("g")
@@ -137,6 +154,7 @@ const BiggestStreamingDays = () => {
 
 
         return () => {
+            tooltip.remove();
             svg.selectAll("*").remove();
         };
     }, [data, width, height, mode]);

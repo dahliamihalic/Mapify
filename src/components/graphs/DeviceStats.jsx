@@ -105,15 +105,39 @@ const DeviceStats = () => {
             .call(d3.axisLeft(y).ticks(5))
             .style("font-size", "12px");
 
-        // Tooltip
         const tooltip = d3.select("body")
-            .append("div")
-            .attr("class", "tooltip")
+            .selectAll(".device-stats-tooltip")
+            .data([null])
+            .join("div")
+            .attr("class", "tooltip device-stats-tooltip")
             .style("position", "absolute")
             .style("padding", "6px 10px")
             .style("border-radius", "6px")
             .style("pointer-events", "none")
+            .style("background", "white")
+            .style("color", "black")
+            .style("display", "none")
             .style("opacity", 0);
+
+        const showTooltip = (event, d) => {
+            const platformKey = event.currentTarget.parentNode.__data__.key;
+            tooltip
+                .style("display", "block")
+                .style("opacity", 1)
+                .html(`<strong>${platformKey}</strong><br>Year: ${d.data.year}<br>Count: ${d.data[platformKey]}`)
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 28}px`);
+        };
+
+        const moveTooltip = (event) => {
+            tooltip
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 28}px`);
+        };
+
+        const hideTooltip = () => {
+            tooltip.style("opacity", 0).style("display", "none");
+        };
 
         // Draw stacked bars with transition
         const groups = svg.selectAll("g.layer")
@@ -129,22 +153,15 @@ const DeviceStats = () => {
             .attr("y", y(0)) // Start from bottom
             .attr("height", 0) // Start from zero
             .attr("width", x.bandwidth())
-            .on("mouseover", (event, d) => {
-                const platformKey = event.currentTarget.parentNode.__data__.key;
-                tooltip.transition().duration(100).style("opacity", 1);
-                tooltip.html(`<strong>${platformKey}</strong><br>Year: ${d.data.year}<br>Count: ${d.data[platformKey]}`)
-                    .style("left", event.pageX + 10 + "px")
-                    .style("top", event.pageY - 28 + "px");
-            })
-            .on("mousemove", event => {
-                tooltip.style("left", event.pageX + 10 + "px")
-                    .style("top", event.pageY - 28 + "px");
-            })
-            .on("mouseout", () => tooltip.transition().duration(100).style("opacity", 0))
+            .on("mouseover", (event, d) => showTooltip(event, d))
+            .on("mousemove", (event) => moveTooltip(event))
+            .on("mouseout", () => hideTooltip())
             .transition() // Animate bars
             .duration(800)
             .attr("y", d => y(d[1]))
             .attr("height", d => y(d[0]) - y(d[1]));
+
+        d3.select(svgRef.current).on("mouseleave", () => hideTooltip());
 
         // Legend
         const legend = svg.append("g")

@@ -163,6 +163,8 @@ const ListeningMap = () => {
             })
             .on("mouseout", () => d3.select("#ip-tooltip").style("opacity", 0));
 
+        d3.select(svgRef.current).on("mouseleave", () => d3.select("#ip-tooltip").style("opacity", 0));
+
     }, [data, mapReady]);
 
 
