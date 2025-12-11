@@ -4,18 +4,19 @@ const path = require('path');
 const fs = require('fs');
 const AdmZip = require('adm-zip');
 
+// REQUIRED FOR MULTER ON VERCEL
 module.exports.config = {
     api: {
         bodyParser: false
     }
 };
 
-
-// Initialize multer for file uploads in serverless environment
+// Initialize multer
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 100 * 1024 * 1024 }
 });
+
 
 // Load GeoIP database
 let reader;

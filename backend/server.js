@@ -7,7 +7,7 @@ const fs = require('fs');
 const AdmZip = require('adm-zip'); 
 
 const app = express();
-const port = 3001; 
+const port = process.env.PORT || 3001;
 
 // most of this was done by AI, we did not have too much knowledge of express servers, but my (Dahlia) experience with 
 // my 390 final paid off a bit.
@@ -16,9 +16,10 @@ const port = 3001;
 // 1. CORS setup (Allows client on 5173 to connect to 3001)
 const allowedOrigins = [
     'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'https://inyourhead-lac.vercel.app/' 
+    'https://inyourhead-lac.vercel.app',
+    /.*/   // allow all (temporary, simplify)
 ];
+
 app.use(cors({ 
     origin: (origin, callback) => {
         if (!origin) return callback(null, true); 
