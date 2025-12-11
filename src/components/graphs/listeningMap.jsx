@@ -235,6 +235,8 @@ const ListeningMap = () => {
                         </li>
                     ))}
                 </ol>
+                <p>*Note that these locations are found via IP address,<br></br>
+                and may not be entirely accurate.</p>
             </div>
         </Row>
     );
