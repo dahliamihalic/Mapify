@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useContext, useState } from "react";
 import * as d3 from "d3";
 import * as topojson from "topojson-client";
 import { DataContext } from "../../contexts/DataContext";
+import { ModeContext } from "../../contexts/ModeContext";
 import Row from "../Row";
 
 const ListeningMap = () => {
     const { data } = useContext(DataContext);
+    const { mode } = useContext(ModeContext);
 
     const svgRef = useRef(null);
     const gRef = useRef(null);
@@ -61,8 +63,8 @@ const ListeningMap = () => {
                     .data(countries)
                     .join("path")
                     .attr("d", path)
-                    .attr("fill", "#e0e0e0")
-                    .attr("stroke", "#555")
+                    .attr("fill", mode == "light" ? "#e0e0e0" : "#333")
+                    .attr("stroke", mode == "light" ? "#555" : "#222")
                     .attr("stroke-width", 0.5);
 
                 // default zoom to US because that's where our users are prob from, could do something cool with ip in the future to zoom to where their current IP address is
