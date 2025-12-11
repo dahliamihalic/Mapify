@@ -39,7 +39,7 @@ const upload = multer({
 
 // 3. Load the GeoIP database
 let reader;
-const dbPath = path.resolve(__dirname, 'data', 'GeoLite2-City.mmdb');
+const dbPath = path.resolve(__dirname, 'GeoLite2-City.mmdb');
 
 try {
     const dbBuffer = fs.readFileSync(dbPath);
