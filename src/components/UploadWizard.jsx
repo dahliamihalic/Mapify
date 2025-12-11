@@ -94,9 +94,9 @@ const UploadWizard = () => {
 
                     {/* Placeholder for your spinner */}
                     <div id="loading-wheel" style={{ marginTop: "10px" }}>
-                        <img src={`url('/${mode === 'light'
+                        <img src={mode === 'light'
                                 ? 'load-white.gif'
-                                : 'loading-load.gif'}')`}></img>
+                                : 'loading-load.gif'}></img>
                     </div>
 
                     {error && <p style={{ color: "red" }}>{error}</p>}
