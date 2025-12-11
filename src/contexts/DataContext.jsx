@@ -6,7 +6,7 @@ import axios from 'axios';
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 const LOOKUP_URL = isLocalhost
     ? 'http://localhost:3001/lookup' 
-    : '/api/lookup';
+    : 'mapify-production.up.railway.app';
 
 console.log('Environment Info:', {
     isLocalhost,
