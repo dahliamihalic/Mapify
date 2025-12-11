@@ -93,7 +93,7 @@ const UploadWizard = () => {
                     <p>Processing ZIP… this may take a moment.</p>
 
                     {/* Placeholder for your spinner */}
-                    <div id="loading-wheel" style={{ marginTop: "10px" }}>
+                    <div id="loading-wheel" style={{ marginTop: "10px", maxWidth: "50px" }}>
                         <img src={mode === 'light'
                                 ? 'load-white.gif'
                                 : 'loading-load.gif'}></img>
