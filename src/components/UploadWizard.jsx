@@ -96,7 +96,7 @@ const UploadWizard = () => {
                     <div id="loading-wheel" style={{ marginTop: "10px"}}>
                         <img src={mode === 'light'
                                 ? 'load-white.gif'
-                                : 'loading-load.gif'} style="max-width:50px"></img>
+                                : 'loading-load.gif'} style={{maxWidth:"50px"}}></img>
                     </div>
 
                     {error && <p style={{ color: "red" }}>{error}</p>}
