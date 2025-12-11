@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const Reader = require('@maxmind/geoip2-node').Reader;
+const { Reader } = require('@maxmind/geoip2-node');
 const path = require('path');
 const fs = require('fs');
 const AdmZip = require('adm-zip');
@@ -10,13 +10,12 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // ---------------- CORS -----------------
-app.use(cors()); 
-// (You can lock this down later once deployed)
+app.use(cors());
 
 // ---------------- File Upload Setup -----------------
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 100 * 1024 * 1024 }  // 100 MB ZIP limit
+    limits: { fileSize: 100 * 1024 * 1024 } // 100 MB ZIP limit
 });
 
 // ---------------- Load GeoIP Database -----------------
@@ -38,7 +37,6 @@ try {
 }
 
 // ------------------- /lookup endpoint -------------------
-
 app.post('/lookup', upload.single('zipFile'), async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: "No ZIP file uploaded." });
@@ -49,15 +47,31 @@ app.post('/lookup', upload.single('zipFile'), async (req, res) => {
         const entries = zip.getEntries();
         let combinedData = [];
 
-        // Read all JSON files inside the ZIP
         for (const entry of entries) {
             if (
                 entry.entryName.toLowerCase().endsWith('.json') &&
                 !entry.isDirectory &&
                 !entry.entryName.startsWith('__MACOSX')
             ) {
-                const content = entry.getData().toString('utf8');
-                const parsed = JSON.parse(content);
+                const contentBuffer = entry.getData();
+                let content;
+
+                // Detect BOM for UTF-16 or use UTF-8
+                if (contentBuffer[0] === 0xff && contentBuffer[1] === 0xfe) {
+                    content = contentBuffer.toString('utf16le');
+                } else if (contentBuffer[0] === 0xfe && contentBuffer[1] === 0xff) {
+                    content = contentBuffer.toString('utf16be');
+                } else {
+                    content = contentBuffer.toString('utf8');
+                }
+
+                let parsed;
+                try {
+                    parsed = JSON.parse(content);
+                } catch (err) {
+                    console.warn(`❌ Failed parsing JSON in ${entry.entryName}:`, err.message);
+                    continue;
+                }
 
                 if (Array.isArray(parsed)) {
                     combinedData.push(...parsed);
@@ -71,18 +85,14 @@ app.post('/lookup', upload.single('zipFile'), async (req, res) => {
             });
         }
 
-        // Perform GeoIP lookups
+        // GeoIP lookups
         const result = combinedData
             .filter(row => row.ip_addr)
             .map(row => {
                 const ip = row.ip_addr;
 
                 // Skip private networks
-                if (
-                    ip.startsWith("192.168.") ||
-                    ip.startsWith("10.") ||
-                    ip.startsWith("172.16.")
-                ) {
+                if (ip.startsWith("192.168.") || ip.startsWith("10.") || ip.startsWith("172.16.")) {
                     return null;
                 }
 
@@ -93,7 +103,7 @@ app.post('/lookup', upload.single('zipFile'), async (req, res) => {
                         latitude: data.location.latitude,
                         longitude: data.location.longitude,
                         city: data.city?.names?.en || null,
-                        country: data.country?.isoCode || null,
+                        country: data.country?.isoCode || null
                     };
                 } catch {
                     return null;
