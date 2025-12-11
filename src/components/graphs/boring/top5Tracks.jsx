@@ -8,9 +8,9 @@ import { ModeContext } from "../../../contexts/ModeContext.jsx";
 const top5tracks = () => {
     const { data } = useContext(DataContext);
     const { mode } = useContext(ModeContext);
-    const margin = { top: 30, right: 20, bottom: 80, left: 50 };
+    const margin = { top: 30, right: 20, bottom: 60, left: 50 };
     const width = 450 - margin.left - margin.right;
-    const height = 420 - margin.top - margin.bottom;
+    const height = 400 - margin.top - margin.bottom;
     const ref = useRef();
     useEffect(() => {
         if (!data || !Array.isArray(data) || data.length === 0) return;
