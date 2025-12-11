@@ -131,6 +131,7 @@ const UploadWizard = () => {
                             width: "250px",
                             height: "50px",
                             border: "none",
+                            paddingBottom: "10px",
                             backgroundColor: "transparent",
                             textAlign: "center",
                             fontSize: "16px",
