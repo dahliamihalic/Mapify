@@ -142,8 +142,8 @@ const ListeningMap = () => {
             .attr("cx", d => projection([d.longitude, d.latitude])?.[0])
             .attr("cy", d => projection([d.longitude, d.latitude])?.[1])
             .attr("r", 2)
-            .attr("fill", "#ba324f")
-            .attr("opacity", 0.75)
+            .attr("fill", mode == "light" ? "#ba324f" : "#9abec6")
+            .attr("opacity", mode == "light" ? 0.75 : 0.5)
             .on("mouseover", (event, d) => {
                 d3.select("#ip-tooltip")
                     .style("opacity", 1)
