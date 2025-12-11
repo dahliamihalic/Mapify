@@ -5,6 +5,7 @@ const { Reader } = require('@maxmind/geoip2-node');
 const path = require('path');
 const fs = require('fs');
 const unzipper = require('unzipper');
+const JSONStream = require('JSONStream');
 
 const app = express();
 const port = process.env.PORT || 3001;
