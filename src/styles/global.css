@@ -73,7 +73,7 @@ main {
   font-family: var(--body-font-family);
 
   .Mapify-Logo {
-    background-image: url('src/assets/artwork/Mapify-Dark.svg');
+    background-image: url('/Mapify-Dark.svg');
 
   }
 

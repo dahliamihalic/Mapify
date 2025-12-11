@@ -36,18 +36,16 @@ const DeviceStatsText = () => {
             .attr("height", height);
         const textColor = mode === 'light' ? '#040605' : '#f9fbfa';
         svg.append("text")
-            .attr("x", 0)
+            .attr("x", 10)
             .attr("y", margin.top)
-            .attr("text-anchor", "middle")
             .attr("font-size", "24px")
             .attr("font-weight", "bold")
             .attr("fill", textColor)
             .text("Top Devices Used");
         platforms.slice(0, 3).forEach((platform, index) => {
             svg.append("text")
-                .attr("x", 0)
+                .attr("x", 10)
                 .attr("y", margin.top + 40 + index * 40)
-                .attr("text-anchor", "middle")
                 .attr("font-size", "18px")
                 .attr("fill", textColor)
                 .text(`${platform}: ${deviceTotals.get(platform).toLocaleString()} streams`);
