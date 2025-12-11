@@ -7,7 +7,7 @@ import { ModeContext } from "../../contexts/ModeContext";
 const DeviceStatsText = () => {
     const { data } = useContext(DataContext);
     const { mode } = useContext(ModeContext);
-    const margin = { top: 30, right: 20, bottom: 60, left: 50 };
+    const margin = { top: 30, right: 0, bottom: 60, left: 0 };
     const svgRef = useRef();
     useEffect(() => {
         if (!data || !Array.isArray(data) || data.length === 0) return;
