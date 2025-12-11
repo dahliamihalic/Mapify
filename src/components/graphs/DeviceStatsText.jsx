@@ -19,7 +19,7 @@ const DeviceStatsText = () => {
             return match ? match[1] : platform;
         };
         
-        const margin = { top: 30, right: 20, bottom: 60, left: 50 };
+        const margin = { top: 30, right: 0, bottom: 60, left: 0 };
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
         const width = 600;
@@ -36,7 +36,7 @@ const DeviceStatsText = () => {
             .attr("height", height);
         const textColor = mode === 'light' ? '#040605' : '#f9fbfa';
         svg.append("text")
-            .attr("x", width / 2)
+            .attr("x", width / 2 -50)
             .attr("y", margin.top)
             .attr("text-anchor", "middle")
             .attr("font-size", "24px")
@@ -45,7 +45,7 @@ const DeviceStatsText = () => {
             .text("Top Devices Used");
         platforms.slice(0, 3).forEach((platform, index) => {
             svg.append("text")
-                .attr("x", width / 2)
+                .attr("x", width / 2 - 50)
                 .attr("y", margin.top + 40 + index * 40)
                 .attr("text-anchor", "middle")
                 .attr("font-size", "18px")
