@@ -19,9 +19,9 @@ const TotalStreamingTime = () => {
         const totalDays = (totalTime / (1000 * 60 * 60 * 24)).toFixed(2);
 
         const svg = d3.select(svgRef.current);
-        svg.selectAll("*").remove();
-        const width = 600;
-        const height = 400;
+        svg.selectAll("*").remove(); const 
+        const width = 450 - margin.left - margin.right;
+        const height = 420 - margin.top - margin.bottom;
         svg
             .attr("width", width)
             .attr("height", height);

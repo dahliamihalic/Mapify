@@ -8,7 +8,9 @@ import { ModeContext } from "../../../contexts/ModeContext.jsx";
 const BiggestYear = () => {
     const { data } = useContext(DataContext);
     const { mode } = useContext(ModeContext);
-    const margin = { top: 30, right: 20, bottom: 60, left: 50 };
+    const margin = { top: 30, right: 20, bottom: 80, left: 50 };
+    const width = 450 - margin.left - margin.right;
+    const height = 420 - margin.top - margin.bottom;
     const svgRef = useRef();
     
     useEffect(() => {
@@ -46,9 +48,6 @@ const BiggestYear = () => {
         
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
-        
-        const width = 600;
-        const height = 400;
         
         svg
             .attr("width", width)
