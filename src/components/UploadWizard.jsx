@@ -51,7 +51,7 @@ const UploadWizard = () => {
 
             {/* STEP TITLES */}
             {step === 1 && <h2>Step 1: Upload ZIP File</h2>}
-            {step === 2 && <h2>Step 2: Processing Your Data…</h2>}
+            {step === 2 && <h2>Step 2: Wait Just A Moment…</h2>}
             {step === 3 && <h2>Step 3: Enter Your Name</h2>}
 
             {/* STEP 1 — UPLOAD */}
@@ -120,7 +120,7 @@ const UploadWizard = () => {
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter Your Name"
+                        placeholder="Ify Spot"
                         required
                         style={{
                             backgroundImage: `url('/${mode === 'light'
