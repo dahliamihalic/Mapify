@@ -20,4 +20,14 @@
 - [ ] combine csv uploader and info form
 - [DONE YAY] fix the broken chart
 - [DONE YAY] add the missing chart
-- [ ] clean up the css on everythiing
+- [ ] clean up the css on everythiing'
+
+
+NOTES FROM PRESENTATION:
+- implement word cloud for word ranks
+- move normal data to a higher tier
+- add year filtering, would be cool to try artist filtering.
+- survey
+- blob storage
+- album cover api? (tate randomly thought of this)
+- would love to actually get devices working properly
