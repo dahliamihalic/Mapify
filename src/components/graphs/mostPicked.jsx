@@ -16,8 +16,8 @@ const MostPicked = () => {
         d3.select(svgRef.current).selectAll("*").remove();
 
         // === SETUP ===
-        const margin = { top: 20, right: 30, bottom: 40, left: 90 };
-        const width = 500 - margin.left - margin.right;
+        const margin = { top: 20, right: 0, bottom: 40, left: 20 };
+        const width = 400 - margin.left - margin.right;
         const height = 500 - margin.top - margin.bottom;
 
         const svg = d3
