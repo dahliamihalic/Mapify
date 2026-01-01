@@ -1,49 +1,42 @@
-import Blob from '@vercel/blob';
 import { Reader } from '@maxmind/geoip2-node';
-import fs from 'fs';
-import os from 'os';
 import path from 'path';
 
-let readerPromise;
+let reader;
 
-async function getReader() {
-  if (readerPromise) return readerPromise;
+// Lazy load DB once per serverless instance
+function getReader() {
+  if (reader) return reader;
 
-  readerPromise = (async () => {
-    try {
-      console.log("Fetching GeoLite2 blob...");
-      const blob = await Blob.get('GeoLite2-City.mmdb'); // ✅ correct
-      const buffer = Buffer.from(await blob.arrayBuffer());
-
-      const tmpPath = path.join(os.tmpdir(), 'GeoLite2-City.mmdb');
-      await fs.promises.writeFile(tmpPath, buffer);
-
-      return Reader.open(tmpPath);
-    } catch (err) {
-      console.error("Failed to initialize GeoIP reader:", err);
-      throw err;
-    }
-  })();
-
-  return readerPromise;
+  const dbPath = path.join(process.cwd(), '/backend/data/GeoLite2-City.mmdb'); // Adjust path if in data/
+  console.log('Opening GeoLite2 DB at:', dbPath);
+  reader = Reader.open(dbPath);
+  return reader;
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   try {
+    // Parse body
     let body = req.body;
     if (typeof body === 'string') body = JSON.parse(body);
 
     const { ips } = body;
-    if (!Array.isArray(ips) || ips.length === 0) return res.status(400).json({ error: 'No IPs provided' });
+    if (!Array.isArray(ips) || ips.length === 0) {
+      return res.status(400).json({ error: 'No IPs provided' });
+    }
 
-    console.log("Incoming batch size:", ips.length);
-    const reader = await getReader();
+    console.log('Incoming batch size:', ips.length);
+
+    const reader = getReader();
     const results = [];
 
     for (const ip of ips) {
+      // Skip private IPs
       if (ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.16.')) continue;
+
       try {
         const geo = reader.city(ip);
         results.push({
@@ -54,7 +47,8 @@ export default async function handler(req, res) {
           country: geo.country?.isoCode ?? null,
         });
       } catch (err) {
-        console.warn("Lookup failed for IP:", ip);
+        // Ignore failed lookups
+        console.warn('Lookup failed for IP:', ip);
       }
     }
 
