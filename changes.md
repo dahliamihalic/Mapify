@@ -16,12 +16,6 @@
 3. 12/7 Dahlia - added a shitload of server stuff, broke some things, fixed some things
 4. 12/8 Dahlia - separated shit into pages, broke some things, fixed some things.
 
-## TODO
-- [ ] combine csv uploader and info form
-- [DONE YAY] fix the broken chart
-- [DONE YAY] add the missing chart
-- [ ] clean up the css on everythiing'
-
 
 NOTES FROM PRESENTATION:
 - implement word cloud for word ranks
@@ -31,3 +25,4 @@ NOTES FROM PRESENTATION:
 - blob storage
 - album cover api? (tate randomly thought of this)
 - would love to actually get devices working properly
+- null could be removed tracks

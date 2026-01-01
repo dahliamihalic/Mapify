@@ -17,10 +17,13 @@
   "dependencies": {
     "@maxmind/geoip2-node": "^6.3.4",
     "@turf/turf": "^7.3.1",
+    "@vercel/blob": "^2.0.0",
     "adm-zip": "^0.5.16",
     "axios": "^1.13.2",
     "d3": "^7.9.0",
+    "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "jszip": "^3.10.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.0",
