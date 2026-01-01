@@ -6,56 +6,37 @@ import path from 'path';
 
 let readerPromise;
 
-/**
- * Load GeoLite2 database once per cold start
- */
 async function getReader() {
   if (readerPromise) return readerPromise;
 
   readerPromise = (async () => {
     const blob = await get('GeoLite2-City.mmdb');
     const buffer = Buffer.from(await blob.arrayBuffer());
-
     const tmpPath = path.join(os.tmpdir(), 'GeoLite2-City.mmdb');
     await fs.promises.writeFile(tmpPath, buffer);
-
     return Reader.open(tmpPath);
   })();
 
   return readerPromise;
 }
 
-/**
- * POST /api/lookup
- * Expects { ips: ["1.2.3.4", ...] }
- */
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
     let body = req.body;
-
-    // Parse JSON if needed
     if (typeof body === 'string') body = JSON.parse(body);
 
     const { ips } = body;
-    if (!Array.isArray(ips) || ips.length === 0) {
-      return res.status(400).json({ error: 'No IPs provided' });
-    }
+    if (!Array.isArray(ips) || ips.length === 0) return res.status(400).json({ error: 'No IPs provided' });
+
+    console.log("Incoming batch size:", ips.length);
 
     const reader = await getReader();
     const results = [];
 
     for (const ip of ips) {
-      // Skip private IPs
-      if (
-        ip.startsWith('10.') ||
-        ip.startsWith('192.168.') ||
-        ip.startsWith('172.16.')
-      ) continue;
-
+      if (ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('172.16.')) continue;
       try {
         const geo = reader.city(ip);
         results.push({
@@ -65,8 +46,8 @@ export default async function handler(req, res) {
           city: geo.city?.names?.en ?? null,
           country: geo.country?.isoCode ?? null,
         });
-      } catch {
-        // ignore invalid IPs
+      } catch (err) {
+        console.warn("Lookup failed for IP:", ip);
       }
     }
 

@@ -1,129 +1,93 @@
-import { createContext, useState, useCallback } from "react";
-import axios from 'axios';
+import { createContext, useState } from "react";
 import JSZip from "jszip";
 
-// Define the URL for your Node.js GeoIP server
-// Detect if we're on Vercel or localhost
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const LOOKUP_URL = '/api/lookup';
-
-console.log('Environment Info:', {
-    isLocalhost,
-    hostname: window.location.hostname,
-    LOOKUP_URL,
-    nodeEnv: import.meta.env.MODE
-});
-
-/**
- * 1. Define the Context and its shape
- */
 export const DataContext = createContext({
-    // The main array to hold the final geolocated data (lat, lon, etc.)
-    data: [],
-    // Data array used by components for filtering/visualization
-    filteredData: [],
-    // Function to initiate the upload and geolocate process
-    uploadAndGeolocate: () => Promise.resolve(),
-    // Status flags for UI feedback
-    isLoading: false,
-    error: null,
-    // Note: You may want to add a setFilteredData function here if needed later
+  data: [],
+  filteredData: [],
+  uploadAndGeolocate: () => Promise.resolve(),
+  isLoading: false,
+  error: null,
+  progress: { processed: 0, total: 0 },
 });
 
-/**
- * 2. Define the Provider Component
- */
 export const DataProvider = ({ children }) => {
-    // State to hold the master array of geolocated IP records
-    const [data, setData] = useState([]);
-    // State to hold the array currently used by the map/charts (initially same as data)
-    const [filteredData, setFilteredData] = useState([]);
-    // Status for loading UI
-    const [isLoading, setIsLoading] = useState(false);
-    // Status for error display
-    const [error, setError] = useState(null);
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [progress, setProgress] = useState({ processed: 0, total: 0 });
 
-    /**
-     * Handles the file upload to the server, receives the geolocated data, 
-     * and updates the context state.
-     * * @param {File} file The user-selected ZIP file object.
-     */
+  /**
+   * Upload ZIP and geolocate in safe batches.
+   */
+  const uploadAndGeolocate = async (zipFile, onProgress = null) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setProgress({ processed: 0, total: 0 });
 
-    const uploadAndGeolocate = async (zipFile, onProgress = null) => {
-        try {
-            setIsLoading(true);
-            setError(null);
+      // 1️⃣ Parse ZIP
+      const zip = await JSZip.loadAsync(zipFile);
+      const ipsSet = new Set();
 
-            // 1️⃣ Parse ZIP in browser
-            const zip = await JSZip.loadAsync(zipFile);
-            const ipsSet = new Set();
+      for (const entry of Object.values(zip.files)) {
+        if (entry.dir || !entry.name.toLowerCase().endsWith(".json") || entry.name.startsWith("__MACOSX"))
+          continue;
 
-            for (const entry of Object.values(zip.files)) {
-                if (
-                    entry.dir ||
-                    !entry.name.toLowerCase().endsWith('.json') ||
-                    entry.name.startsWith('__MACOSX')
-                ) continue;
+        const text = await entry.async("text");
+        const parsed = JSON.parse(text);
+        if (!Array.isArray(parsed)) continue;
 
-                const text = await entry.async('text');
-                const parsed = JSON.parse(text);
-                if (!Array.isArray(parsed)) continue;
-
-                for (const row of parsed) {
-                    if (row?.ip_addr) ipsSet.add(row.ip_addr);
-                }
-            }
-
-            const ipList = Array.from(ipsSet);
-            if (ipList.length === 0) throw new Error('No IPs found in ZIP');
-
-            // 2️⃣ Batch upload
-            const BATCH_SIZE = 2000;
-            const geoResults = [];
-
-            for (let i = 0; i < ipList.length; i += BATCH_SIZE) {
-                const batch = ipList.slice(i, i + BATCH_SIZE);
-
-                const res = await fetch('/api/lookup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ips: batch }),
-                });
-
-                if (!res.ok) {
-                    throw new Error('GeoIP lookup failed');
-                }
-
-                const data = await res.json();
-                geoResults.push(...data.results);
-
-                // Progress callback
-                if (onProgress) onProgress(Math.min(i + BATCH_SIZE, ipList.length), ipList.length);
-            }
-
-            // 3️⃣ Update context
-            setData(geoResults);
-        } catch (err) {
-            console.error(err);
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
+        for (const row of parsed) {
+          if (row?.ip_addr) ipsSet.add(row.ip_addr);
         }
-    };
+      }
 
+      const ipList = Array.from(ipsSet);
+      if (ipList.length === 0) throw new Error("No IPs found in ZIP");
 
-    // The context value bundles all data and functions
-    const contextValue = {
-        data,
-        filteredData,
-        uploadAndGeolocate,
-        isLoading,
-        error
-    };
+      // 2️⃣ Batch upload
+      const BATCH_SIZE = 2000;
+      const geoResults = [];
 
-    return (
-        <DataContext.Provider value={contextValue}>
-            {children}
-        </DataContext.Provider>
-    );
+      for (let i = 0; i < ipList.length; i += BATCH_SIZE) {
+        const batch = ipList.slice(i, i + BATCH_SIZE);
+
+        const res = await fetch("/api/lookup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ips: batch }),
+        });
+
+        if (!res.ok) {
+          console.error(`Batch failed: ${i} to ${i + batch.length}`);
+          throw new Error("GeoIP lookup failed");
+        }
+
+        const data = await res.json();
+        geoResults.push(...data.results);
+
+        // Update progress
+        setProgress({ processed: Math.min(i + BATCH_SIZE, ipList.length), total: ipList.length });
+        if (onProgress) onProgress(Math.min(i + BATCH_SIZE, ipList.length), ipList.length);
+      }
+
+      // 3️⃣ Update context
+      setData(geoResults);
+      setFilteredData(geoResults);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <DataContext.Provider
+      value={{ data, filteredData, setFilteredData, uploadAndGeolocate, isLoading, error, progress }}
+    >
+      {children}
+    </DataContext.Provider>
+  );
 };
