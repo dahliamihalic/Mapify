@@ -25,20 +25,17 @@ const ListeningMap = () => {
             .attr("width", width)
             .attr("height", height);
 
-        // clean the map
-        svg.selectAll("*").remove();
+        svg.selectAll("*").remove(); // clean the map
 
         const g = svg.append("g");
         gRef.current = g;
 
-        //physical map
         const projection = d3.geoNaturalEarth1();
         projectionRef.current = projection;
 
         const path = d3.geoPath().projection(projection);
         pathRef.current = path;
 
-        // zoom functionality
         const zoom = d3.zoom()
             .scaleExtent([1, 10])
             .on("zoom", (event) => g.attr("transform", event.transform));
@@ -46,66 +43,54 @@ const ListeningMap = () => {
         zoomBehaviorRef.current = zoom;
         svg.call(zoom);
 
-        // json map data
+        // Load world map
         d3.json("data/world-110m.json")
             .catch(() => d3.json("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json"))
             .then(world => {
                 const countries = topojson.feature(world, world.objects.countries).features;
 
-                // setting size for world
-                projection.fitSize([width, height], {
-                    type: "FeatureCollection",
-                    features: countries
-                });
+                projection.fitSize([width, height], { type: "FeatureCollection", features: countries });
 
-                // draw countries
                 g.selectAll("path")
                     .data(countries)
                     .join("path")
                     .attr("d", path)
-                    .attr("fill", mode == "light" ? "#e0e0e0" : "#333")
-                    .attr("stroke", mode == "light" ? "#555" : "#222")
+                    .attr("fill", mode === "light" ? "#e0e0e0" : "#333")
+                    .attr("stroke", mode === "light" ? "#555" : "#222")
                     .attr("stroke-width", 0.5);
 
-                // default zoom to US because that's where our users are prob from, could do something cool with ip in the future to zoom to where their current IP address is
                 zoomToUS();
                 setMapReady(true);
-
             });
 
-    }, []);
+    }, [mode]);
 
-    // ip plotting
     useEffect(() => {
         if (!mapReady) return;
-
-        if (!gRef.current || !projectionRef.current || !Array.isArray(data)) return; //checking that refs and data are ready
+        if (!gRef.current || !projectionRef.current || !Array.isArray(data)) return;
 
         const g = gRef.current;
         const projection = projectionRef.current;
 
         g.selectAll(".ip-point").remove();
 
-        // filter valid data with lat/lon
+        // Filter valid geo data
         const valid = data.filter(d =>
             d.geo?.lat && d.geo?.lon &&
             !isNaN(d.geo.lat) && !isNaN(d.geo.lon)
         );
 
-        // aggregate by lat/lon to find most popular track
+        // Group by lat/lon
         const locationMap = new Map();
-
         valid.forEach(d => {
-            const key = `${d.latitude.toFixed(3)},${d.longitude.toFixed(3)}`; // group nearby points
-            if (!locationMap.has(key)) {
-                locationMap.set(key, []);
-            }
+            const key = `${d.geo.lat.toFixed(3)},${d.geo.lon.toFixed(3)}`;
+            if (!locationMap.has(key)) locationMap.set(key, []);
             locationMap.get(key).push(d);
         });
 
-        // For each location, find the track with max ms_played
+        // Get most played track per location
         const points = [];
-        locationMap.forEach((arr, key) => {
+        locationMap.forEach((arr) => {
             const mostPlayed = arr.reduce((a, b) => (a.ms_played > b.ms_played ? a : b));
             points.push({
                 latitude: mostPlayed.geo.lat,
@@ -119,21 +104,20 @@ const ListeningMap = () => {
             });
         });
 
+        // Count plays per city
         const cityCounts = new Map();
-
         valid.forEach(d => {
-            const city = d.city || "Unknown city";
+            const city = d.geo.city || "Unknown city";
             cityCounts.set(city, (cityCounts.get(city) || 0) + 1);
         });
 
-        // top 3
         setTopCities(
             [...cityCounts.entries()]
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 3)
         );
 
-
+        // Draw points
         g.selectAll(".ip-point")
             .data(points)
             .enter()
@@ -142,19 +126,19 @@ const ListeningMap = () => {
             .attr("cx", d => projection([d.longitude, d.latitude])?.[0])
             .attr("cy", d => projection([d.longitude, d.latitude])?.[1])
             .attr("r", 2)
-            .attr("fill", mode == "light" ? "#ba324f" : "#9abec6")
-            .attr("opacity", mode == "light" ? 0.75 : 0.5)
+            .attr("fill", mode === "light" ? "#ba324f" : "#9abec6")
+            .attr("opacity", mode === "light" ? 0.75 : 0.5)
             .on("mouseover", (event, d) => {
                 d3.select("#ip-tooltip")
                     .style("opacity", 1)
                     .html(`
-                    <strong>Track:</strong> ${d.track_name}<br>
-                    <strong>Artist:</strong> ${d.artist_name}<br>
-                    <strong>Album:</strong> ${d.album_name}<br>
-                    <strong>City:</strong> ${d.city ?? "Unknown"}<br>
-                    <strong>Country:</strong> ${d.country ?? "Unknown"}<br>
-                    <strong>Playtime:</strong> ${(d.ms_played / 1000).toFixed(1)}s
-                `);
+                        <strong>Track:</strong> ${d.track_name}<br>
+                        <strong>Artist:</strong> ${d.artist_name}<br>
+                        <strong>Album:</strong> ${d.album_name}<br>
+                        <strong>City:</strong> ${d.city ?? "Unknown"}<br>
+                        <strong>Country:</strong> ${d.country ?? "Unknown"}<br>
+                        <strong>Playtime:</strong> ${(d.ms_played / 1000).toFixed(1)}s
+                    `);
             })
             .on("mousemove", event => {
                 d3.select("#ip-tooltip")
@@ -165,35 +149,20 @@ const ListeningMap = () => {
 
         d3.select(svgRef.current).on("mouseleave", () => d3.select("#ip-tooltip").style("opacity", 0));
 
-    }, [data, mapReady]);
+    }, [data, mapReady, mode]);
 
-
-    //us zoom functionality
     const zoomToUS = () => {
         const svg = d3.select(svgRef.current);
         const zoom = zoomBehaviorRef.current;
         const projection = projectionRef.current;
 
-        // US Bounds, had to google
-        const bbox = {
-            west: -125,
-            east: -66,
-            north: 49,
-            south: 24
-        };
-
+        const bbox = { west: -125, east: -66, north: 49, south: 24 };
         const pNW = projection([bbox.west, bbox.north]);
         const pSE = projection([bbox.east, bbox.south]);
-
         if (!pNW || !pSE) return;
 
         const [[x0, y0], [x1, y1]] = [pNW, pSE];
-
-        const scale = Math.min(
-            width / Math.abs(x1 - x0),
-            height / Math.abs(y1 - y0)
-        ) * 0.9;
-
+        const scale = Math.min(width / Math.abs(x1 - x0), height / Math.abs(y1 - y0)) * 0.9;
         const translateX = (width - scale * (x0 + x1)) / 2;
         const translateY = (height - scale * (y0 + y1)) / 2;
 
@@ -205,12 +174,8 @@ const ListeningMap = () => {
     return (
         <Row>
             <div className="ip-map-container" style={{ position: "relative" }}>
-                <h2 style={{ textAlign: "center", marginBottom: 20 }}>
-                    Where Have You Been Loca?
-                </h2>
-
+                <h2 style={{ textAlign: "center", marginBottom: 20 }}>Where Have You Been Loca?</h2>
                 <svg ref={svgRef}></svg>
-
                 <div
                     id="ip-tooltip"
                     style={{
@@ -230,13 +195,11 @@ const ListeningMap = () => {
                 <h3>You did most of your listening</h3>
                 <ol>
                     {topCities.map(([city, count]) => (
-                        <li key={city}>
-                            {city} — {count} plays
-                        </li>
+                        <li key={city}>{city} — {count} plays</li>
                     ))}
                 </ol>
-                <p>*Note that these locations are found via IP address,<br></br>
-                    and may not be entirely accurate.</p>
+                <p>*Note that these locations are found via IP address,<br />
+                and may not be entirely accurate.</p>
             </div>
         </Row>
     );
