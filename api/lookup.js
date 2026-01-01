@@ -7,7 +7,7 @@ let reader;
 function getReader() {
   if (reader) return reader;
 
-  const dbPath = path.join(process.cwd(), '/backend/data/GeoLite2-City.mmdb'); // Adjust path if in data/
+  const dbPath = path.join(process.cwd(), '/api/GeoLite2-City.mmdb'); // Adjust path if in data/
   console.log('Opening GeoLite2 DB at:', dbPath);
   reader = Reader.open(dbPath);
   return reader;
