@@ -49,14 +49,14 @@ export const DataProvider = ({ children }) => {
      * * @param {File} file The user-selected ZIP file object.
      */
 
-    const uploadAndGeolocate = async (zipFile) => {
+    const uploadAndGeolocate = async (zipFile, onProgress = null) => {
         try {
             setIsLoading(true);
             setError(null);
 
             // 1️⃣ Parse ZIP in browser
             const zip = await JSZip.loadAsync(zipFile);
-            const ips = new Set();
+            const ipsSet = new Set();
 
             for (const entry of Object.values(zip.files)) {
                 if (
@@ -67,37 +67,42 @@ export const DataProvider = ({ children }) => {
 
                 const text = await entry.async('text');
                 const parsed = JSON.parse(text);
-
                 if (!Array.isArray(parsed)) continue;
 
                 for (const row of parsed) {
-                    if (row?.ip_addr) {
-                        ips.add(row.ip_addr);
-                    }
+                    if (row?.ip_addr) ipsSet.add(row.ip_addr);
                 }
             }
 
-            const ipList = Array.from(ips);
+            const ipList = Array.from(ipsSet);
+            if (ipList.length === 0) throw new Error('No IPs found in ZIP');
 
-            if (ipList.length === 0) {
-                throw new Error('No IPs found in ZIP');
+            // 2️⃣ Batch upload
+            const BATCH_SIZE = 2000;
+            const geoResults = [];
+
+            for (let i = 0; i < ipList.length; i += BATCH_SIZE) {
+                const batch = ipList.slice(i, i + BATCH_SIZE);
+
+                const res = await fetch('/api/lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ips: batch }),
+                });
+
+                if (!res.ok) {
+                    throw new Error('GeoIP lookup failed');
+                }
+
+                const data = await res.json();
+                geoResults.push(...data.results);
+
+                // Progress callback
+                if (onProgress) onProgress(Math.min(i + BATCH_SIZE, ipList.length), ipList.length);
             }
 
-            // 2️⃣ Send ONLY IPs to Vercel API
-            const res = await fetch('/api/lookup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ips: ipList }),
-            });
-
-            if (!res.ok) {
-                throw new Error('GeoIP lookup failed');
-            }
-
-            const geoData = await res.json();
-
-            // 3️⃣ Store result exactly like before
-            setData(geoData);
+            // 3️⃣ Update context
+            setData(geoResults);
         } catch (err) {
             console.error(err);
             setError(err.message);
@@ -105,6 +110,7 @@ export const DataProvider = ({ children }) => {
             setIsLoading(false);
         }
     };
+
 
     // The context value bundles all data and functions
     const contextValue = {

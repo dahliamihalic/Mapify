@@ -6,6 +6,9 @@ import path from 'path';
 
 let readerPromise;
 
+/**
+ * Load GeoLite2 database once per cold start
+ */
 async function getReader() {
   if (readerPromise) return readerPromise;
 
@@ -22,14 +25,22 @@ async function getReader() {
   return readerPromise;
 }
 
+/**
+ * POST /api/lookup
+ * Expects { ips: ["1.2.3.4", ...] }
+ */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const { ips } = req.body;
+    let body = req.body;
 
+    // Parse JSON if needed
+    if (typeof body === 'string') body = JSON.parse(body);
+
+    const { ips } = body;
     if (!Array.isArray(ips) || ips.length === 0) {
       return res.status(400).json({ error: 'No IPs provided' });
     }
@@ -38,6 +49,7 @@ export default async function handler(req, res) {
     const results = [];
 
     for (const ip of ips) {
+      // Skip private IPs
       if (
         ip.startsWith('10.') ||
         ip.startsWith('192.168.') ||
@@ -54,13 +66,13 @@ export default async function handler(req, res) {
           country: geo.country?.isoCode ?? null,
         });
       } catch {
-        // ignore lookup failures
+        // ignore invalid IPs
       }
     }
 
-    res.json(results);
+    res.status(200).json({ results, count: results.length });
   } catch (err) {
-    console.error(err);
+    console.error('GeoIP lookup error:', err);
     res.status(500).json({ error: 'GeoIP lookup failed' });
   }
 }
