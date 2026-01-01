@@ -30,7 +30,7 @@ export const DataProvider = ({ children }) => {
       setProgress({ processed: 0, total: streamingData.length });
 
       // Split into IP batches to avoid huge payloads
-      const batchSize = 100;
+      const batchSize = 1000;
       for (let i = 0; i < streamingData.length; i += batchSize) {
         const batch = streamingData.slice(i, i + batchSize);
 

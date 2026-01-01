@@ -62,7 +62,7 @@ const UploadWizard = () => {
           <div id="loading-wheel" style={{ marginTop: 10 }}>
             <img src={mode === "light" ? "load-white.gif" : "loading-load.gif"} style={{ maxWidth: 50 }} />
           </div>
-          {progress.total > 0 && <p>{`Processed ${progress.processed} / ${progress.total} IPs`}</p>}
+          {progress.total > 0 && <p>{`Processed ${progress.processed} / ${progress.total} rows`}</p>}
         </div>
       )}
 

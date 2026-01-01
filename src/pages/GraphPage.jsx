@@ -11,6 +11,7 @@ import ListeningMap from '../components/graphs/listeningMap.jsx';
 import BiggestYear from '../components/graphs/boring/biggestYear.jsx';
 import DeviceStatsText from '../components/graphs/DeviceStatsText.jsx';
 import TotalStreamingTime from '../components/graphs/boring/totalStreamingTime.jsx';
+import ExportFullCSVButton from '../components/ExportFullCSVButton.jsx';
 
 import React, { useContext } from "react";
 import { DataContext } from '../contexts/DataContext.jsx';
@@ -67,6 +68,9 @@ function GraphPage() {
                     <h3>Top Title Keywords</h3>
                     <KeywordOccurences></KeywordOccurences>
                 </div>
+            </Row>
+            <Row>
+                <ExportFullCSVButton></ExportFullCSVButton>
             </Row>
         </Wrapper >
     )

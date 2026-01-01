@@ -25,7 +25,7 @@ const DeviceStats = () => {
             .append("g")
             .attr("transform", `translate(${margin.left},${margin.top})`);
 
-        // Parse timestamps
+        // === Parse timestamps ===
         const parseDate = d => {
             const formats = [
                 "%Y-%m-%dT%H:%M:%SZ",
@@ -40,14 +40,13 @@ const DeviceStats = () => {
             return null;
         };
 
-        // Extract device model from platform string (e.g., "iOS 9.2.1 (iPhone5,1)" -> "iPhone5,1")
+        // === Extract device model from platform string ===
         const extractDeviceModel = (platform) => {
             if (!platform) return 'Unknown';
             const match = platform.match(/\(([^)]+)\)/);
             return match ? match[1] : platform;
         };
 
-        // Map data
         const parsed = filteredData
             .map(d => {
                 const dt = parseDate(d.ts);
@@ -56,15 +55,14 @@ const DeviceStats = () => {
             })
             .filter(d => d.date);
 
-        // Platforms sorted by total play count (using device model instead of full platform string)
+        // === Platforms and years ===
         const platformTotals = d3.rollup(parsed, v => v.length, d => d.deviceModel);
         const platforms = Array.from(platformTotals.keys())
             .sort((a, b) => (platformTotals.get(b) || 0) - (platformTotals.get(a) || 0));
 
-        // Years
         const years = Array.from(new Set(parsed.map(d => d.year))).sort((a, b) => a - b);
 
-        // Aggregate data by year
+        // === Aggregate data by year ===
         const dataByYear = years.map(year => {
             const row = { year };
             platforms.forEach(p => (row[p] = 0));
@@ -74,12 +72,12 @@ const DeviceStats = () => {
             return row;
         });
 
-        // Stack
+        // === Stack generator ===
         const stack = d3.stack().keys(platforms)(dataByYear);
 
-        // Scales
+        // === Scales ===
         const x = d3.scaleBand()
-            .domain(years)
+            .domain(years.map(String))
             .range([0, width])
             .padding(0.2);
 
@@ -88,14 +86,13 @@ const DeviceStats = () => {
             .nice()
             .range([height, 0]);
 
-        const colorScale = createColorScale(platforms, mode, "constant"); // light for MODE CONTEXT
-        colorScale.domain(platforms);
+        const colorScale = createColorScale(platforms, mode, "constant");
 
-        // Axes
+        // === Axes ===
         svg.append("g")
             .attr("class", "x-axis")
             .attr("transform", `translate(0,${height})`)
-            .call(d3.axisBottom(x).tickFormat(d => d))
+            .call(d3.axisBottom(x))
             .selectAll("text")
             .attr("transform", "rotate(-45)")
             .style("text-anchor", "end");
@@ -105,6 +102,7 @@ const DeviceStats = () => {
             .call(d3.axisLeft(y).ticks(5))
             .style("font-size", "12px");
 
+        // === Tooltip ===
         const tooltip = d3.select("body")
             .selectAll(".device-stats-tooltip")
             .data([null])
@@ -120,26 +118,23 @@ const DeviceStats = () => {
             .style("opacity", 0);
 
         const showTooltip = (event, d) => {
-            const platformKey = event.currentTarget.parentNode.__data__.key;
             tooltip
                 .style("display", "block")
                 .style("opacity", 1)
-                .html(`<strong>${platformKey}</strong><br>Year: ${d.data.year}<br>Count: ${d.data[platformKey]}`)
+                .html(`<strong>${d.key}</strong><br>Year: ${d.data.year}<br>Count: ${d.data[d.key]}`)
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 28}px`);
         };
-
         const moveTooltip = (event) => {
             tooltip
                 .style("left", `${event.pageX + 10}px`)
                 .style("top", `${event.pageY - 28}px`);
         };
-
         const hideTooltip = () => {
             tooltip.style("opacity", 0).style("display", "none");
         };
 
-        // Draw stacked bars with transition
+        // === Draw stacked bars ===
         const groups = svg.selectAll("g.layer")
             .data(stack)
             .join("g")
@@ -147,23 +142,23 @@ const DeviceStats = () => {
             .attr("fill", d => colorScale(d.key));
 
         groups.selectAll("rect")
-            .data(d => d)
+            .data(d => d.map(p => ({ ...p, key: d.key }))) // attach key to each rect
             .join("rect")
-            .attr("x", d => x(d.data.year))
-            .attr("y", y(0)) // Start from bottom
-            .attr("height", 0) // Start from zero
+            .attr("x", d => x(String(d.data.year)))
+            .attr("y", y(0))
+            .attr("height", 0)
             .attr("width", x.bandwidth())
             .on("mouseover", (event, d) => showTooltip(event, d))
-            .on("mousemove", (event) => moveTooltip(event))
+            .on("mousemove", event => moveTooltip(event))
             .on("mouseout", () => hideTooltip())
-            .transition() // Animate bars
+            .transition()
             .duration(800)
             .attr("y", d => y(d[1]))
             .attr("height", d => y(d[0]) - y(d[1]));
 
         d3.select(svgRef.current).on("mouseleave", () => hideTooltip());
 
-        // Legend
+        // === Legend ===
         const legend = svg.append("g")
             .attr("class", "legend")
             .attr("transform", `translate(${width + 20},0)`);
@@ -183,13 +178,10 @@ const DeviceStats = () => {
                 .style("font-size", "12px")
                 .style("alignment-baseline", "middle"));
 
-        return () => tooltip.remove(); // Cleanup
+        return () => tooltip.remove(); // cleanup
     }, [filteredData, mode]);
 
-    return (
-        <>
-            <svg ref={svgRef}></svg>
-        </>);
+    return <svg ref={svgRef}></svg>;
 };
 
 export default DeviceStats;
