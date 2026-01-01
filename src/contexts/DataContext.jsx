@@ -1,110 +1,75 @@
 import { createContext, useState } from "react";
 import JSZip from "jszip";
 
-export const DataContext = createContext({
-  data: [],
-  filteredData: [],
-  uploadAndGeolocate: () => Promise.resolve(),
-  isLoading: false,
-  error: null,
-  progress: { processed: 0, total: 0, failed: 0 },
-});
+export const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
   const [data, setData] = useState([]);
-  const [filteredData, setFilteredData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [progress, setProgress] = useState({ processed: 0, total: 0, failed: 0 });
+  const [progress, setProgress] = useState({ processed: 0, total: 0 });
 
-  const uploadAndGeolocate = async (zipFile, onProgress = null) => {
+  const uploadAndGeolocate = async (file, onProgress) => {
+    setIsLoading(true);
+    setError(null);
+    setData([]);
+    setProgress({ processed: 0, total: 0 });
+
     try {
-      setIsLoading(true);
-      setError(null);
-      setProgress({ processed: 0, total: 0, failed: 0 });
-      setData([]);
-      setFilteredData([]);
+      const zip = await JSZip.loadAsync(file);
+      const jsonFiles = Object.keys(zip.files).filter((f) => f.endsWith(".json"));
+      const streamingData = [];
 
-      // 1️⃣ Parse ZIP
-      const zip = await JSZip.loadAsync(zipFile);
-      const ipsSet = new Set();
-
-      for (const entry of Object.values(zip.files)) {
-        if (entry.dir || !entry.name.toLowerCase().endsWith(".json") || entry.name.startsWith("__MACOSX")) continue;
-
-        const text = await entry.async("text");
-        const parsed = JSON.parse(text);
-        if (!Array.isArray(parsed)) continue;
-
-        for (const row of parsed) {
-          if (row?.ip_addr) ipsSet.add(row.ip_addr);
-        }
+      // Extract all JSON files
+      for (const fileName of jsonFiles) {
+        const content = await zip.files[fileName].async("string");
+        const json = JSON.parse(content);
+        streamingData.push(...json);
       }
 
-      const ipList = Array.from(ipsSet);
-      if (ipList.length === 0) throw new Error("No IPs found in ZIP");
+      setProgress({ processed: 0, total: streamingData.length });
 
-      // 2️⃣ Batch upload
-      const BATCH_SIZE = 2000;
-      const geoResults = [];
-      let totalFailed = 0;
+      // Split into IP batches to avoid huge payloads
+      const batchSize = 100;
+      for (let i = 0; i < streamingData.length; i += batchSize) {
+        const batch = streamingData.slice(i, i + batchSize);
 
-      for (let i = 0; i < ipList.length; i += BATCH_SIZE) {
-        const batch = ipList.slice(i, i + BATCH_SIZE);
+        const ips = batch.map((item) => item.ip_addr).filter(Boolean);
 
-        try {
-          const res = await fetch("/api/lookup", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ips: batch }),
-          });
-
-          if (!res.ok) throw new Error(`Batch ${i}-${i + batch.length} failed`);
-
-          const json = await res.json();
-          geoResults.push(...json.results);
-
-          // Count failed IPs in this batch
-          totalFailed += batch.length - json.results.length;
-
-        } catch (batchErr) {
-          console.warn("Batch failed:", batchErr);
-          totalFailed += batch.length; // All IPs in batch failed
-        }
-
-        // Update progress including failed
-        setProgress({
-          processed: Math.min(i + BATCH_SIZE, ipList.length),
-          total: ipList.length,
-          failed: totalFailed,
+        const res = await fetch("/api/lookup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ips }),
         });
-        if (onProgress) onProgress(Math.min(i + BATCH_SIZE, ipList.length), ipList.length, totalFailed);
+
+        if (!res.ok) throw new Error("GeoIP lookup failed");
+
+        const geoData = await res.json(); // { results: [...] }
+        const geoMap = {};
+        geoData.results.forEach((g) => (geoMap[g.ip] = g));
+
+        // Merge geo info back into batch
+        const enriched = batch.map((item) => ({
+          ...item,
+          geo: geoMap[item.ip_addr] || null,
+        }));
+
+        streamingData.splice(i, batch.length, ...enriched);
+        setProgress({ processed: Math.min(i + batchSize, streamingData.length), total: streamingData.length });
+        if (onProgress) onProgress(Math.min(i + batchSize, streamingData.length), streamingData.length);
       }
 
-      // 3️⃣ Update context
-      setData(geoResults);
-      setFilteredData(geoResults);
-
-      if (geoResults.length === 0) {
-        setError("No IPs could be geolocated");
-      } else if (totalFailed > 0) {
-        setError(`${totalFailed} IPs could not be geolocated, but ${geoResults.length} succeeded`);
-      }
+      setData(streamingData);
     } catch (err) {
-      console.error("uploadAndGeolocate error:", err);
+      console.error(err);
       setError(err.message);
-      setData([]);
-      setFilteredData([]);
-      setProgress({ processed: 0, total: 0, failed: 0 });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <DataContext.Provider
-      value={{ data, filteredData, setFilteredData, uploadAndGeolocate, isLoading, error, progress }}
-    >
+    <DataContext.Provider value={{ data, isLoading, error, progress, uploadAndGeolocate }}>
       {children}
     </DataContext.Provider>
   );

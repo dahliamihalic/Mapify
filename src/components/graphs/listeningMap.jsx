@@ -88,8 +88,8 @@ const ListeningMap = () => {
 
         // filter valid data with lat/lon
         const valid = data.filter(d =>
-            d.latitude && d.longitude &&
-            !isNaN(d.latitude) && !isNaN(d.longitude)
+            d.geo?.lat && d.geo?.lon &&
+            !isNaN(d.geo.lat) && !isNaN(d.geo.lon)
         );
 
         // aggregate by lat/lon to find most popular track
@@ -108,14 +108,14 @@ const ListeningMap = () => {
         locationMap.forEach((arr, key) => {
             const mostPlayed = arr.reduce((a, b) => (a.ms_played > b.ms_played ? a : b));
             points.push({
-                latitude: mostPlayed.latitude,
-                longitude: mostPlayed.longitude,
+                latitude: mostPlayed.geo.lat,
+                longitude: mostPlayed.geo.lon,
                 track_name: mostPlayed.master_metadata_track_name,
                 artist_name: mostPlayed.master_metadata_album_artist_name,
                 album_name: mostPlayed.master_metadata_album_album_name,
                 ms_played: mostPlayed.ms_played,
-                city: mostPlayed.city,
-                country: mostPlayed.country
+                city: mostPlayed.geo.city,
+                country: mostPlayed.geo.country
             });
         });
 
@@ -236,7 +236,7 @@ const ListeningMap = () => {
                     ))}
                 </ol>
                 <p>*Note that these locations are found via IP address,<br></br>
-                and may not be entirely accurate.</p>
+                    and may not be entirely accurate.</p>
             </div>
         </Row>
     );
