@@ -27,7 +27,9 @@ const UploadWizard = () => {
         setFile(zip);
 
         if (zip && zip.name.endsWith(".zip")) {
-            await uploadAndGeolocate(zip);
+            await uploadAndGeolocate(zip, (processed, total) => {
+                console.log(`Processed ${processed} / ${total} IPs`);
+            });
         }
     };
 
@@ -41,10 +43,10 @@ const UploadWizard = () => {
         !file
             ? 1 // Step 1: No file chosen yet
             : isLoading
-            ? 2 // Step 2: Processing
-            : data.length > 0
-            ? 3 // Step 3: Ready for name entry
-            : 1;
+                ? 2 // Step 2: Processing
+                : data.length > 0
+                    ? 3 // Step 3: Ready for name entry
+                    : 1;
 
     return (
         <div style={{ textAlign: "center", marginTop: "40px" }}>
@@ -93,10 +95,10 @@ const UploadWizard = () => {
                     <p>Processing ZIP… this may take a moment.</p>
 
                     {/* Placeholder for your spinner */}
-                    <div id="loading-wheel" style={{ marginTop: "10px"}}>
+                    <div id="loading-wheel" style={{ marginTop: "10px" }}>
                         <img src={mode === 'light'
-                                ? 'load-white.gif'
-                                : 'loading-load.gif'} style={{maxWidth:"50px"}}></img>
+                            ? 'load-white.gif'
+                            : 'loading-load.gif'} style={{ maxWidth: "50px" }}></img>
                     </div>
 
                     {error && <p style={{ color: "red" }}>{error}</p>}
