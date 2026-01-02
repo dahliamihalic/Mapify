@@ -17,24 +17,30 @@ export const DataProvider = ({ children }) => {
 
     try {
       const zip = await JSZip.loadAsync(file);
-      const jsonFiles = Object.keys(zip.files).filter((f) => f.endsWith(".json"));
+      const jsonFiles = Object.keys(zip.files).filter(f => f.endsWith(".json"));
       const streamingData = [];
 
-      // Extract all JSON files
       for (const fileName of jsonFiles) {
         const content = await zip.files[fileName].async("string");
         const json = JSON.parse(content);
-        streamingData.push(...json);
+
+        // 🚫 REMOVE AUDIOBOOKS HERE
+        const musicAndEpisodesOnly = json.filter(item =>
+          item.audiobook_title === null &&
+          item.audiobook_uri === null &&
+          item.audiobook_chapter_uri === null
+        );
+
+        streamingData.push(...musicAndEpisodesOnly);
       }
 
       setProgress({ processed: 0, total: streamingData.length });
 
-      // Split into IP batches to avoid huge payloads
       const batchSize = 1000;
+
       for (let i = 0; i < streamingData.length; i += batchSize) {
         const batch = streamingData.slice(i, i + batchSize);
-
-        const ips = batch.map((item) => item.ip_addr).filter(Boolean);
+        const ips = batch.map(item => item.ip_addr).filter(Boolean);
 
         const res = await fetch("/api/lookup", {
           method: "POST",
@@ -44,19 +50,20 @@ export const DataProvider = ({ children }) => {
 
         if (!res.ok) throw new Error("GeoIP lookup failed");
 
-        const geoData = await res.json(); // { results: [...] }
+        const geoData = await res.json();
         const geoMap = {};
-        geoData.results.forEach((g) => (geoMap[g.ip] = g));
+        geoData.results.forEach(g => (geoMap[g.ip] = g));
 
-        // Merge geo info back into batch
-        const enriched = batch.map((item) => ({
+        const enriched = batch.map(item => ({
           ...item,
           geo: geoMap[item.ip_addr] || null,
         }));
 
         streamingData.splice(i, batch.length, ...enriched);
-        setProgress({ processed: Math.min(i + batchSize, streamingData.length), total: streamingData.length });
-        if (onProgress) onProgress(Math.min(i + batchSize, streamingData.length), streamingData.length);
+
+        const processed = Math.min(i + batchSize, streamingData.length);
+        setProgress({ processed, total: streamingData.length });
+        onProgress?.(processed, streamingData.length);
       }
 
       setData(streamingData);
