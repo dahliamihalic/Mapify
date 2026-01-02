@@ -32,10 +32,11 @@ const KeywordCloud = () => {
 
         data.forEach(d => {
             if (d.master_metadata_track_name) {
-                d.master_metadata_track_name
-                    .toLowerCase()
+                const cleaned = cleanTitle(d.master_metadata_track_name);
+
+                cleaned
                     .split(/\s+/)
-                    .filter(word => word.length > 2 && !/[()[\]{}]/.test(word))
+                    .filter(word => word.length > 2)
                     .forEach(word => {
                         wordCounts[word] = (wordCounts[word] || 0) + 1;
                         if (commonWords.includes(word)) wordCounts[word] -= 1;
@@ -122,20 +123,29 @@ const KeywordCloud = () => {
                 .selectAll("text")
                 .data(words)
                 .enter()
+            const texts = svg.append("g")
+                .attr("transform", `translate(${width / 2}, ${height / 2})`)
+                .selectAll("text")
+                .data(words)
+                .enter()
                 .append("text")
                 .style("font-size", d => `${d.size}px`)
                 .style("fill", d => d.color)
+                .style("cursor", "default")
                 .attr("text-anchor", "middle")
                 .attr("transform", d =>
                     `translate(${d.x}, ${d.y}) rotate(${d.rotate})`
                 )
                 .text(d => d.text)
-                .append("title")
-                .text(d => `${d.text}: ${d.value}`)
                 .on("mouseover", (event, d) => showTooltip(event, d))
-                .on("mousemove", (event) => moveTooltip(event))
+                .on("mousemove", moveTooltip)
                 .on("mouseout", (event) => hideTooltip(event.currentTarget));
+
+            texts.append("title")
+                .text(d => `${d.text}: ${d.value}`);
+
             svg.on("mouseleave", () => hideTooltip());
+
         }
     }, [data, mode]);
 
