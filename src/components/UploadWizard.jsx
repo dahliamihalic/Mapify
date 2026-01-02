@@ -23,7 +23,7 @@ const UploadWizard = () => {
     setFile(zip);
     if (zip && zip.name.endsWith(".zip")) {
       await uploadAndGeolocate(zip, (processed, total) =>
-        console.log(`Processed ${processed} / ${total} rows`)
+        console.log(`Processed ${processed} / ${total} listens`)
       );
     }
   };
@@ -62,7 +62,7 @@ const UploadWizard = () => {
           <div id="loading-wheel" style={{ marginTop: 10 }}>
             <img src={mode === "light" ? "load-white.gif" : "loading-load.gif"} style={{ maxWidth: 50 }} />
           </div>
-          {progress.total > 0 && <p>{`Processed ${progress.processed} / ${progress.total} rows`}</p>}
+          {progress.total > 0 && <p>{`Processed ${progress.processed} / ${progress.total} listens`}</p>}
         </div>
       )}
 
