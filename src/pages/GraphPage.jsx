@@ -4,6 +4,7 @@ import MostSkipped from '../components/graphs/mostSkipped';
 import BiggestStreamingDays from '../components/graphs/biggestStreamingDays';
 import MostPicked from '../components/graphs/mostPicked';
 import KeywordOccurences from '../components/graphs/keywordOccurences';
+import KeywordCloud from '../components/graphs/keywordCloud.jsx';
 import Top5Artists from '../components/graphs/boring/top5Artists.jsx';
 import Top5Albums from '../components/graphs/boring/top5Albums.jsx';
 import Top5Tracks from '../components/graphs/boring/top5Tracks.jsx';
@@ -42,7 +43,7 @@ function GraphPage() {
                 </div>
                 <div id="col-3">
                     <h3>Top Title Keywords</h3>
-                    <KeywordOccurences></KeywordOccurences>
+                    <KeywordCloud></KeywordCloud>
                 </div>
             </Row>
             <ListeningMap></ListeningMap>
