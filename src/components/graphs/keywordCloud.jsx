@@ -50,7 +50,7 @@ const KeywordCloud = () => {
             .slice(0, 30);
 
         const minFont = 14;
-        const maxFont = 50;
+        const maxFont = 60;
 
         const fontScale = d3.scaleLog()
             .domain([
@@ -71,7 +71,7 @@ const KeywordCloud = () => {
             .words(words)
             .padding(4)
             .rotate(() => 0)
-            .font("sans-serif")
+            .font("DM-Serif Text")
             .fontSize(d => d.size)
             .on("end", draw);
 
