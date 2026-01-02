@@ -76,6 +76,46 @@ const KeywordCloud = () => {
 
         layout.start();
 
+        const tooltip = d3.select("body")
+            .selectAll(".wordcloud-tooltip")
+            .data([null])
+            .join("div")
+            .attr("class", "tooltip wordcloud-tooltip")
+            .style("position", "absolute")
+            .style("padding", "8px 12px")
+            .style("border-radius", "4px")
+            .style("pointer-events", "none")
+            .style("font-size", "12px")
+            .style("z-index", "1000")
+            .style("background", "white")
+            .style("color", "black")
+            .style("display", "none")
+            .style("opacity", 0);
+
+        const showTooltip = (event, d) => {
+            tooltip
+                .style("display", "block")
+                .style("opacity", 1)
+                .html(`
+                            <strong>Word:</strong> ${d.text}<br/>
+                            <strong>Occurrences:</strong> ${d.value}
+                        `)
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 10}px`);
+            d3.select(event.currentTarget).style("opacity", 0.7);
+        };
+
+        const moveTooltip = (event) => {
+            tooltip
+                .style("left", `${event.pageX + 10}px`)
+                .style("top", `${event.pageY - 10}px`);
+        };
+
+        const hideTooltip = (target) => {
+            tooltip.style("opacity", 0).style("display", "none");
+            if (target) d3.select(target).style("opacity", 1);
+        };
+
         function draw(words) {
             svg.append("g")
                 .attr("transform", `translate(${width / 2}, ${height / 2})`)
@@ -91,7 +131,11 @@ const KeywordCloud = () => {
                 )
                 .text(d => d.text)
                 .append("title")
-                .text(d => `${d.text}: ${d.value}`);
+                .text(d => `${d.text}: ${d.value}`)
+                .on("mouseover", (event, d) => showTooltip(event, d))
+                .on("mousemove", (event) => moveTooltip(event))
+                .on("mouseout", (event) => hideTooltip(event.currentTarget));
+            svg.on("mouseleave", () => hideTooltip());
         }
     }, [data, mode]);
 
