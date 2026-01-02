@@ -25,7 +25,6 @@ const KeywordCloud = () => {
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
-            .attr("transform", `translate(${margin.left},${margin.top})`);
 
         // word counting
         const commonWords = ["the", "and", "for"];
