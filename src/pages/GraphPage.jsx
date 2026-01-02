@@ -25,7 +25,26 @@ function GraphPage() {
     return (
         <Wrapper>
             <h1>{uName}'s Spotify Mapped</h1>
-
+            <h2>Let's start with the "normal" stats</h2>
+            <Row>
+                <div id="col-1"><Top5Artists></Top5Artists></div>
+                <div id="col-2"><Top5Albums></Top5Albums></div>
+                <div id="col-3"><Top5Tracks></Top5Tracks></div>
+            </Row>
+            <Row>
+                <div id="col-1">
+                    <h3>Total Streaming Time</h3>
+                    <TotalStreamingTime></TotalStreamingTime>
+                </div>
+                <div id="col-2">
+                    <h3>Biggest Year for Streaming</h3>
+                    <BiggestYear></BiggestYear>
+                </div>
+                <div id="col-3">
+                    <h3>Top Title Keywords</h3>
+                    <KeywordOccurences></KeywordOccurences>
+                </div>
+            </Row>
             <ListeningMap></ListeningMap>
             <Row>
                 <DeviceStats></DeviceStats>
@@ -48,28 +67,8 @@ function GraphPage() {
                     <h4>Love this for you!</h4>
                 </div>
             </Row>
-            <h2>Feeling Boring?</h2>
-            <h3>Fine, here's the "normal" stats.</h3>
             <Row>
-                <div id="col-1"><Top5Artists></Top5Artists></div>
-                <div id="col-2"><Top5Albums></Top5Albums></div>
-                <div id="col-3"><Top5Tracks></Top5Tracks></div>
-            </Row>
-            <Row>
-                <div id="col-1">
-                    <h3>Total Streaming Time</h3>
-                    <TotalStreamingTime></TotalStreamingTime>
-                </div>
-                <div id="col-2">
-                    <h3>Biggest Year for Streaming</h3>
-                    <BiggestYear></BiggestYear>
-                </div>
-                <div id="col-3">
-                    <h3>Top Title Keywords</h3>
-                    <KeywordOccurences></KeywordOccurences>
-                </div>
-            </Row>
-            <Row>
+                <h2>testing</h2>
                 <ExportFullCSVButton></ExportFullCSVButton>
             </Row>
         </Wrapper >
