@@ -24,14 +24,13 @@ export const DataProvider = ({ children }) => {
         const content = await zip.files[fileName].async("string");
         const json = JSON.parse(content);
 
-        // 🚫 REMOVE AUDIOBOOKS HERE
-        const musicAndEpisodesOnly = json.filter(item =>
+        const sdata = json.filter(item =>
           item.audiobook_title === null &&
           item.audiobook_uri === null &&
           item.audiobook_chapter_uri === null
         );
 
-        streamingData.push(...musicAndEpisodesOnly);
+        streamingData.push(...sdata);
       }
 
       setProgress({ processed: 0, total: streamingData.length });
