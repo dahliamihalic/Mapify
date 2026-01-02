@@ -63,7 +63,7 @@ const ListeningMap = () => {
                 setMapReady(true);
             });
 
-    }, [mode]);
+    }, []);
 
     useEffect(() => {
         if (!mapReady) return;
