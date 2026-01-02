@@ -23,7 +23,7 @@ const UploadWizard = () => {
     setFile(zip);
     if (zip && zip.name.endsWith(".zip")) {
       await uploadAndGeolocate(zip, (processed, total) =>
-        console.log(`Processed ${processed} / ${total} IPs`)
+        console.log(`Processed ${processed} / ${total} rows`)
       );
     }
   };
