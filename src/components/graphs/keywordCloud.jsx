@@ -29,11 +29,18 @@ const KeywordCloud = () => {
         // word counting
         const commonWords = ["the", "and", "for"];
         const wordCounts = {};
+        const cleanTitle = (title) => {
+            return title
+                .toLowerCase()
+                .replace(/[\(\[].*?(feat\.?|featuring|with).*?[\)\]]/gi, "")
+                .replace(/\s*-\s*(feat\.?|featuring|with).*/gi, "")
+                .replace(/[^\w\s]/g, " ")
+                .trim();
+        };
 
         data.forEach(d => {
             if (d.master_metadata_track_name) {
                 const cleaned = cleanTitle(d.master_metadata_track_name);
-
                 cleaned
                     .split(/\s+/)
                     .filter(word => word.length > 2)
