@@ -25,6 +25,9 @@ export const DataProvider = ({ children }) => {
         const json = JSON.parse(content);
 
         const sdata = json.filter(item =>
+          item.episode_name === null &&
+          item.episode_show_name === null &&
+          item.spotify_episode_uri === null &&
           item.audiobook_title === null &&
           item.audiobook_uri === null &&
           item.audiobook_chapter_uri === null
