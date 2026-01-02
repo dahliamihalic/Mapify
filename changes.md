@@ -15,11 +15,10 @@
              - would like to try and style the site more but unsure where to start 
 3. 12/7 Dahlia - added a shitload of server stuff, broke some things, fixed some things
 4. 12/8 Dahlia - separated shit into pages, broke some things, fixed some things.
-5. 1/1 and 1/2 Dahlia - migrated off railway, rearrranged the page a bit, fixed the null track issue
+5. 1/1 and 1/2 Dahlia - migrated off railway, rearrranged the page a bit, fixed the null track issue, wordcloud
 
 
 NOTES FROM PRESENTATION:
-- implement word cloud for word ranks
 - add year filtering, would be cool to try artist filtering.
 - survey
 - album cover api? (tate randomly thought of this)
