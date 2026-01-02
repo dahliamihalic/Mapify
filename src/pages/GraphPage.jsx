@@ -70,7 +70,7 @@ function GraphPage() {
                 </div>
             </Row>
             <Row>
-                <ExportFullCSVButton>hi</ExportFullCSVButton>
+                <ExportFullCSVButton></ExportFullCSVButton>
             </Row>
         </Wrapper >
     )

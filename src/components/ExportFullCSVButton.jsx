@@ -1,6 +1,5 @@
 import React, { useContext } from "react";
-import { DataContext } from "../../contexts/DataContext";
-
+import { DataContext } from "../contexts/DataContext";
 const ExportFullCSVButton = () => {
   const { data } = useContext(DataContext);
 
