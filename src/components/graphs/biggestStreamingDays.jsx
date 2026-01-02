@@ -90,8 +90,6 @@ const BiggestStreamingDays = () => {
             if (target) d3.select(target).style("opacity", 1);
         };
 
-        console.log("DATA FOR SCALE:", data);
-
         const xScale = d3
             .scaleBand()
             .domain(streamsByDay.map((d) => d.date))
